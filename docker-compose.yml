@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - admin-service
+      - inventory-service
+      - product-catalog-service
+      - user-management-service
+      - order-management-service
+
+  admin-service:
+    build: ./services/admin-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+
+  inventory-service:
+    build: ./services/inventory-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - database
+
+  product-catalog-service:
+    build: ./services/product-catalog-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - database
+
+  user-management-service:
+    build: ./services/user-management-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/mydb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+
+  order-management-service:
+    build: ./services/order-management-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - database
+
+  database:
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
