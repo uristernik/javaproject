@@ -1,54 +1,91 @@
 version: '3.8'
 
 services:
-  nginx:
-    build: ./nginx
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway-service/Dockerfile
     ports:
       - "80:80"
+    networks:
+      - app-network
     depends_on:
-      - admin-service
-      - inventory-service
-      - product-catalog-service
-      - user-management-service
-      - order-management-service
+      admin-service:
+        condition: service_started
+      inventory-service:
+        condition: service_started
+      product-catalog-service:
+        condition: service_started
+      user-management-service:
+        condition: service_started
+      order-management-service:
+        condition: service_started
 
   admin-service:
-    build: ./services/admin-service
+    build:
+      context: .
+      dockerfile: services/admin-service/Dockerfile
     ports:
       - "8080:8080"
+    networks:
+      - app-network
     depends_on:
       - database
 
   inventory-service:
-    build: ./services/inventory-service
+    build:
+      context: .
+      dockerfile: services/inventory-service/Dockerfile
     ports:
       - "8081:8081"
+    networks:
+      - app-network
     depends_on:
       - database
 
   product-catalog-service:
-    build: ./services/product-catalog-service
+    build:
+      context: .
+      dockerfile: services/product-catalog-service/Dockerfile
     ports:
       - "8082:8082"
+    networks:
+      - app-network
     depends_on:
       - database
 
   user-management-service:
-    build: ./services/user-management-service
+    build:
+      context: .
+      dockerfile: services/user-management-service/Dockerfile
     ports:
       - "8083:8083"
+    networks:
+      - app-network
     depends_on:
       database:
-        condition: service_healthy
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/mydb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   order-management-service:
-    build: ./services/order-management-service
+    build:
+      context: .
+      dockerfile: services/order-management-service/Dockerfile
     ports:
       - "8084:8084"
+    networks:
+      - app-network
     depends_on:
       - database
 
@@ -64,9 +101,16 @@ services:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d mydb"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - app-network
 
 volumes:
   pgdata:
+
+networks:
+  app-network:
+    driver: bridge

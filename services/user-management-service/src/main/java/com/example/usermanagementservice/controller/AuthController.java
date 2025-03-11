@@ -6,10 +6,11 @@ import com.example.usermanagementservice.dto.SignUpRequest;
 import com.example.usermanagementservice.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@RestController
+@Controller
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
@@ -19,8 +20,8 @@ public class AuthController {
     }
 
     @GetMapping("/login-page")
-    public void loginPage(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/login.html");
+    public String loginPage() {
+        return "redirect:/login.html";
     }
 
     @PostMapping("/signup")

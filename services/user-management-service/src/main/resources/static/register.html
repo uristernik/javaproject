@@ -88,7 +88,7 @@
                 const data = await response.json();
                 if (response.ok) {
                     localStorage.setItem('token', data.token);
-                    window.location.href = '/dashboard.html';
+                    window.location.href = '/products/';
                 } else {
                     alert('Registration failed: ' + data.message);
                 }
