@@ -29,6 +29,7 @@
         <module>services/order-management-service</module>
         <module>services/product-catalog-service</module>
         <module>services/user-management-service</module>
+        <module>services/data-access-service</module>
     </modules>
 
     <dependencies>

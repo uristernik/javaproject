@@ -11,6 +11,7 @@ services:
       - product-catalog-service
       - user-management-service
       - order-management-service
+      - data-access-service
 
   admin-service:
     build: ./services/admin-service
@@ -52,6 +53,18 @@ services:
     depends_on:
       - database
 
+  data-access-service:
+    build: ./services/data-access-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/mydb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+
   database:
     image: postgres:alpine
     environment:
@@ -62,11 +75,13 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql # Mount the SQL file
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d mydb"]
       interval: 10s
       timeout: 5s
       retries: 5
+    command: ["postgres", "-c", "logging_collector=on"]  # Added for better logging
 
 volumes:
   pgdata:
