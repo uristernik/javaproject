@@ -44,11 +44,11 @@ class InventoryController {
         try {
             inventoryService.addProduce(productId, quantityKG);
             redirectAttributes.addFlashAttribute("success", true);
+            return "redirect:/farmers";
         } catch (Exception e) {
             model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
             model.addAttribute("error", "Failed to add produce: " + e.getMessage());
             return "farmers";
         }
-        return "redirect:/farmers";
     }
 }

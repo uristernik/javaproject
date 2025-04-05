@@ -34,15 +34,17 @@ public class InventoryService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // Calculate new quantity
+        // Calculate new quantities
         int newQuantity = currentItem.getQuantityKG() + quantityKG;
+        int newStock = currentItem.getStockKG() + quantityKG;
         
-        // Update the inventory through data-access-service
+        // Update both quantity and stock through data-access-service
         webClient.post()
                 .uri("/api/data/tables/inventory/update")
                 .bodyValue(Map.of(
                     "productId", productId,
-                    "quantityKG", newQuantity
+                    "quantityKG", newQuantity,
+                    "stockKG", newStock
                 ))
                 .retrieve()
                 .bodyToMono(Void.class)

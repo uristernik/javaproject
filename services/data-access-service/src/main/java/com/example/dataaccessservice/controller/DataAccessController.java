@@ -24,4 +24,12 @@ public class DataAccessController {
     public ResponseEntity<List<Map<String, Object>>> getTableData(@PathVariable String tableName) {
         return ResponseEntity.ok(databaseService.getTableData(tableName));
     }
+
+    @PostMapping("/tables/{tableName}/update")
+    public ResponseEntity<Void> updateTableData(
+            @PathVariable String tableName,
+            @RequestBody Map<String, Object> updateData) {
+        databaseService.updateTableData(tableName, updateData);
+        return ResponseEntity.ok().build();
+    }
 }
