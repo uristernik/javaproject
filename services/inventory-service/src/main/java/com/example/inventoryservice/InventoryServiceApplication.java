@@ -6,10 +6,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.Map;
 
 @SpringBootApplication
 public class InventoryServiceApplication {
@@ -36,19 +35,16 @@ class InventoryController {
         return "farmers";
     }
 
-    @PostMapping("/farmers/add")
-    public String addProduce(@RequestParam Long productId,
-                            @RequestParam Integer quantityKG,
-                            Model model,
-                            RedirectAttributes redirectAttributes) {
+    @PostMapping("/farmers/add-multiple")
+    public String addMultipleProduce(@RequestParam Map<String, String> quantities,
+                                    RedirectAttributes redirectAttributes) {
         try {
-            inventoryService.addProduce(productId, quantityKG);
+            inventoryService.addMultipleProduce(quantities);
             redirectAttributes.addFlashAttribute("success", true);
             return "redirect:/farmers";
         } catch (Exception e) {
-            model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
-            model.addAttribute("error", "Failed to add produce: " + e.getMessage());
-            return "farmers";
+            redirectAttributes.addFlashAttribute("error", "Failed to add produce: " + e.getMessage());
+            return "redirect:/farmers";
         }
     }
 }
