@@ -17,6 +17,6 @@ public class UserManagementServiceApplication {
 class UserManagementServiceApplicationController {
     @GetMapping("/")
     public String getInfo() {
-        return "UserManagementServiceApplication Running!";
+        return "User Management Service is running!";
     }
 }

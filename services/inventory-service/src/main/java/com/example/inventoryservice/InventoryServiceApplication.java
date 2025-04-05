@@ -14,9 +14,9 @@ public class InventoryServiceApplication {
 }
 
 @RestController
-class InventoryServiceApplicationController {
+class InventoryController {
     @GetMapping("/")
-    public String getInfo() {
-        return "InventoryServiceApplication Running!";
+    public String home() {
+        return "Inventory Service is running!";
     }
 }
