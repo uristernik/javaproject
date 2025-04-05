@@ -27,6 +27,28 @@ public class InventoryService {
                 .collect(Collectors.toList());
     }
 
+    public void addProduce(Long productId, Integer quantityKG) {
+        // Get current quantity
+        InventoryItem currentItem = getInventoryItems().stream()
+                .filter(item -> item.getProductId().equals(productId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        // Calculate new quantity
+        int newQuantity = currentItem.getQuantityKG() + quantityKG;
+        
+        // Update the inventory through data-access-service
+        webClient.post()
+                .uri("/api/data/tables/inventory/update")
+                .bodyValue(Map.of(
+                    "productId", productId,
+                    "quantityKG", newQuantity
+                ))
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
+
     private InventoryItem mapToInventoryItem(Map<String, Object> map) {
         InventoryItem item = new InventoryItem();
         item.setProductId(((Number) map.get("productid")).longValue());
