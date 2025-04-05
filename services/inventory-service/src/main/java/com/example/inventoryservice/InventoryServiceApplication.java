@@ -1,9 +1,12 @@
 package com.example.inventoryservice;
 
+import com.example.inventoryservice.service.InventoryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 public class InventoryServiceApplication {
@@ -13,10 +16,14 @@ public class InventoryServiceApplication {
     }
 }
 
-@RestController
+@Controller
 class InventoryController {
+    @Autowired
+    private InventoryService inventoryService;
+
     @GetMapping("/")
-    public String home() {
-        return "Inventory Service is running!";
+    public String home(Model model) {
+        model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
+        return "inventory";
     }
 }

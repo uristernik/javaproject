@@ -44,3 +44,16 @@ CREATE TABLE IF NOT EXISTS REVIEWS (
     numberOfRatings INTEGER,
     sumOfReviews INTEGER
 );
+
+-- Make sure your INSERT statements are correct and being executed
+INSERT INTO INVENTORY (description, quantityKG, stockKG, pricePerKG) VALUES
+    ('Organic Apples', 150, 200, 3),
+    ('Fresh Bananas', 100, 120, 2),
+    ('Carrots', 80, 90, 2),
+    ('Tomatoes', 60, 70, 4),
+    ('Potatoes', 200, 250, 1),
+    ('Oranges', 120, 140, 3),
+    ('Broccoli', 40, 45, 5),
+    ('Spinach', 30, 35, 6),
+    ('Sweet Potatoes', 90, 100, 3),
+    ('Bell Peppers', 50, 60, 4);
