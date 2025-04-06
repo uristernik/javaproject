@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS USERS (
 CREATE TABLE IF NOT EXISTS ORDERS (
     orderID SERIAL PRIMARY KEY,
     userID INTEGER REFERENCES USERS(userID),
-    deliveryAddress INTEGER,
+    deliveryAddress TEXT,
     totalPrice INTEGER
 );
 
@@ -43,6 +43,11 @@ CREATE TABLE IF NOT EXISTS REVIEWS (
     numberOfRatings INTEGER,
     sumOfReviews INTEGER
 );
+
+-- Insert default user
+INSERT INTO USERS (userID, firstName, lastName, email, phone, hashedPassword, type) 
+VALUES (1, 'Default', 'User', 'default@example.com', '1234567890', 'defaulthash', 1)
+ON CONFLICT (userID) DO NOTHING;
 
 -- Make sure your INSERT statements are correct and being executed
 INSERT INTO INVENTORY (description, stockKG, pricePerKG) VALUES

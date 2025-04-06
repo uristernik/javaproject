@@ -524,8 +524,10 @@
         }
 
         function checkout() {
-            // TODO: Implement checkout functionality
-            alert('Checkout functionality coming soon!');
+            // Store basket in localStorage
+            localStorage.setItem('basket', JSON.stringify(Array.from(basket.entries())));
+            // Redirect to checkout page
+            window.location.href = '/checkout';
         }
 
         function showMessage(message, type) {

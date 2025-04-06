@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Checkout</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .checkout-form, .order-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .order-items {
+            margin: 20px 0;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .total {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .submit-button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .submit-button:hover {
+            background-color: #219a52;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            background-color: #fde8e7;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            color: #27ae60;
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="checkout-form">
+            <h1>Checkout</h1>
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+            
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Delivery Address</label>
+                    <input type="text" id="address" required>
+                </div>
+                
+                <button type="submit" class="submit-button">Place Order</button>
+            </form>
+        </div>
+        
+        <div class="order-summary">
+            <h2>Order Summary</h2>
+            <div id="orderItems" class="order-items">
+                <!-- Items will be populated by JavaScript -->
+            </div>
+            <div class="total">
+                Total: <span id="orderTotal">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get basket from localStorage if available
+        let basket = new Map(JSON.parse(localStorage.getItem('basket') || '[]'));
+        
+        function displayOrderSummary() {
+            const orderItemsDiv = document.getElementById('orderItems');
+            const orderTotalSpan = document.getElementById('orderTotal');
+            let total = 0;
+            let html = '';
+
+            for (const [productId, item] of basket) {
+                const itemTotal = item.quantity * item.pricePerKg;
+                total += itemTotal;
+
+                html += `
+                    <div class="order-item">
+                        <div>
+                            <div>${item.description}</div>
+                            <div>${item.quantity}KG × $${item.pricePerKg}/KG</div>
+                        </div>
+                        <div>$${itemTotal.toFixed(2)}</div>
+                    </div>
+                `;
+            }
+
+            orderItemsDiv.innerHTML = html;
+            orderTotalSpan.textContent = `$${total.toFixed(2)}`;
+        }
+
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Calculate total price
+            let totalPrice = 0;
+            const items = Array.from(basket.entries()).map(([productId, item]) => {
+                const itemTotal = item.quantity * item.pricePerKg;
+                totalPrice += itemTotal;
+                return {
+                    productId: productId,
+                    quantity: item.quantity,
+                    pricePerKG: item.pricePerKg
+                };
+            });
+
+            // Prepare order data
+            const orderData = {
+                userId: 1, // You might want to get this from your authentication system
+                deliveryAddress: document.getElementById('address').value,
+                totalPrice: totalPrice,
+                items: items
+            };
+
+            try {
+                const response = await fetch('/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to process order');
+                }
+
+                // Clear basket
+                basket.clear();
+                localStorage.removeItem('basket');
+                
+                // Show success message
+                successDiv.textContent = 'Order placed successfully! Redirecting to catalog...';
+                successDiv.style.display = 'block';
+                
+                // Redirect after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/catalog';
+                }, 2000);
+
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        // Initialize order summary
+        displayOrderSummary();
+    </script>
+</body>
+</html>
