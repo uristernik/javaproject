@@ -89,7 +89,7 @@
             <tbody>
                 <tr th:each="item : ${inventoryItems}">
                     <td th:text="${item.description}">Product</td>
-                    <td th:text="${item.quantityKG != null ? item.quantityKG + ' KG' : '0 KG'}">0 KG</td>
+                    <td th:text="${item.stockKG != null ? item.stockKG + ' KG' : '0 KG'}">0 KG</td>
                     <td>
                         <span class="stock-status"
                               th:with="stock=${item.stockKG != null ? item.stockKG : 0}"

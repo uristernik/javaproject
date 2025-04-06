@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS ORDERS (
 CREATE TABLE IF NOT EXISTS INVENTORY (
     productID SERIAL PRIMARY KEY,
     description TEXT,
-    quantityKG INTEGER,
     stockKG INTEGER,
     pricePerKG INTEGER
 );
@@ -46,14 +45,14 @@ CREATE TABLE IF NOT EXISTS REVIEWS (
 );
 
 -- Make sure your INSERT statements are correct and being executed
-INSERT INTO INVENTORY (description, quantityKG, stockKG, pricePerKG) VALUES
-    ('Organic Apples', 150, 200, 3),
-    ('Fresh Bananas', 100, 120, 2),
-    ('Carrots', 80, 90, 2),
-    ('Tomatoes', 60, 70, 4),
-    ('Potatoes', 200, 250, 1),
-    ('Oranges', 120, 140, 3),
-    ('Broccoli', 40, 45, 5),
-    ('Spinach', 30, 35, 6),
-    ('Sweet Potatoes', 90, 100, 3),
-    ('Bell Peppers', 50, 60, 4);
+INSERT INTO INVENTORY (description, stockKG, pricePerKG) VALUES
+    ('Organic Apples', 200, 3),
+    ('Fresh Bananas', 120, 2),
+    ('Carrots', 90, 2),
+    ('Tomatoes', 70, 4),
+    ('Potatoes', 250, 1),
+    ('Oranges', 140, 3),
+    ('Broccoli', 45, 5),
+    ('Spinach', 35, 6),
+    ('Sweet Potatoes', 100, 3),
+    ('Bell Peppers', 60, 4);

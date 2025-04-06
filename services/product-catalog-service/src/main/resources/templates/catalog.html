@@ -168,14 +168,43 @@
             border-radius: 6px;
             font-size: 0.9em;
         }
+
+        #message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 4px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .success-message {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .error-message {
+            background-color: #e74c3c;
+            color: white;
+        }
     </style>
 </head>
 <body>
+    <div id="message-container" style="display: none;"></div>
     <div class="container">
         <h1>Fresh Produce Catalog</h1>
         
         <div class="product-grid">
-            <div th:each="product : ${products}" class="product-card" th:onclick="'showProductDetails(' + ${product.productid} + ')'">
+            <div th:each="product : ${products}" 
+                 class="product-card" 
+                 th:onclick="'showProductDetails(' + ${product.productid} + ')'"
+                 th:data-stock="${product.stockkg}">
                 <h3 th:text="${product.description}">Product Name</h3>
                 
                 <div class="price" th:text="'$' + ${product.priceperkg} + '/KG'">$0/KG</div>
@@ -193,9 +222,10 @@
                     <label class="quantity-label" th:for="'quantity-' + ${product.productid}">Select Quantity:</label>
                     <select th:id="'quantity-' + ${product.productid}"
                             class="quantity-select"
-                            th:data-price="${product.priceperkg}">
+                            th:data-price="${product.priceperkg}"
+                            onclick="event.stopPropagation()">
                         <option value="0">0 KG</option>
-                        <option th:each="i : ${#numbers.sequence(1, 20)}"
+                        <option th:each="i : ${#numbers.sequence(1, 100)}"
                                 th:value="${i * 0.5}"
                                 th:text="${i * 0.5 + ' KG'}">
                         </option>
@@ -203,7 +233,8 @@
                 </div>
                 
                 <button class="add-to-basket"
-                        th:onclick="'addToBasket(' + ${product.productid} + ')'">
+                        th:onclick="'event.stopPropagation(); addToBasket(' + ${product.productid} + ')'"
+                        type="button">
                     Add to Basket
                 </button>
             </div>
@@ -309,12 +340,33 @@
             const quantity = parseFloat(quantitySelect.value);
             
             if (quantity <= 0) {
-                alert('Please select a quantity');
+                showMessage('Please select a quantity', 'error');
+                return;
+            }
+
+            // Get the available stock from the data attribute
+            const productCard = quantitySelect.closest('.product-card');
+            const availableStock = parseInt(productCard.getAttribute('data-stock'));
+            
+            if (quantity > availableStock) {
+                showMessage(`Sorry, only ${availableStock}KG available in stock`, 'error');
                 return;
             }
             
-            alert('Added ' + quantity + 'KG to basket');
+            showMessage(`Added ${quantity}KG to basket`, 'success');
             quantitySelect.value = 0;
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message-container');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.style.display = 'block';
+            
+            // Hide message after 3 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
         }
     </script>
 </body>

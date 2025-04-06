@@ -27,11 +27,10 @@ public class DatabaseService {
     public void updateTableData(String tableName, Map<String, Object> updateData) {
         if ("inventory".equalsIgnoreCase(tableName)) {
             Long productId = ((Number) updateData.get("productId")).longValue();
-            Integer quantityKG = ((Number) updateData.get("quantityKG")).intValue();
             Integer stockKG = ((Number) updateData.get("stockKG")).intValue();
             
-            String sql = "UPDATE inventory SET quantitykg = ?, stockkg = ? WHERE productid = ?";
-            int rowsAffected = jdbcTemplate.update(sql, quantityKG, stockKG, productId);
+            String sql = "UPDATE inventory SET stockkg = ? WHERE productid = ?";
+            int rowsAffected = jdbcTemplate.update(sql, stockKG, productId);
             
             if (rowsAffected == 0) {
                 throw new RuntimeException("Product not found with ID: " + productId);
