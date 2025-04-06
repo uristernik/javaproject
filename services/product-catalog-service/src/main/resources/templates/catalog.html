@@ -34,6 +34,13 @@
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
         }
         
         .product-card h3 {
@@ -101,6 +108,66 @@
             color: #2c3e50;
             font-size: 0.9em;
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            width: 70%;
+            max-width: 500px;
+            border-radius: 8px;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {transform: translateY(-100px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        .modal-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-right: 20px;
+        }
+
+        .modal-description {
+            color: #34495e;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .modal-facts {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -108,7 +175,7 @@
         <h1>Fresh Produce Catalog</h1>
         
         <div class="product-grid">
-            <div th:each="product : ${products}" class="product-card">
+            <div th:each="product : ${products}" class="product-card" th:onclick="'showProductDetails(' + ${product.productid} + ')'">
                 <h3 th:text="${product.description}">Product Name</h3>
                 
                 <div class="price" th:text="'$' + ${product.priceperkg} + '/KG'">$0/KG</div>
@@ -142,9 +209,102 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <div id="modalDescription" class="modal-description"></div>
+            <div id="modalFacts" class="modal-facts"></div>
+        </div>
+    </div>
     
     <script>
+        // Product descriptions database
+        const productDescriptions = {
+            1: {
+                title: "Organic Apples",
+                description: "These aren't just any apples – they're nature's candy! Our organic apples are so crisp, even the trees are jealous. Each bite is like a high-five for your taste buds! 🍎",
+                facts: "Fun fact: Our apples are so fresh, they still have their Instagram accounts active!"
+            },
+            2: {
+                title: "Fresh Bananas",
+                description: "Meet the ultimate comfort food that comes in its own wrapper! Our bananas are so perfectly curved, they make mathematicians question their protractors. 🍌",
+                facts: "Warning: These bananas may cause spontaneous monkey impressions!"
+            },
+            3: {
+                title: "Carrots",
+                description: "These carrots are so orange, they make sunsets look pale! Perfect vision not guaranteed, but extreme deliciousness is! Your rabbit will give you a five-star review. 🥕",
+                facts: "Legend says our carrots can see in the dark (but we haven't caught them doing it yet)."
+            },
+            4: {
+                title: "Tomatoes",
+                description: "These tomatoes are so red, they make fire trucks look pink! They're the superheroes of your salad, ready to save your sandwich from blandness. 🍅",
+                facts: "Our tomatoes have been known to cause spontaneous Italian accent syndrome!"
+            },
+            5: {
+                title: "Potatoes",
+                description: "The most versatile vegetable in the world! These spuds are so good, they make French fries dream of being them when they grow up. 🥔",
+                facts: "These potatoes have more eyes than a spy convention!"
+            },
+            6: {
+                title: "Oranges",
+                description: "These oranges are so juicy, they come with their own splash zone! Nature's perfect snack, pre-segmented by Mother Nature herself. Warning: May cause extreme vitamin C euphoria! 🍊",
+                facts: "Our oranges are so bright, they're banned from midnight snacking - they'll wake up the whole house!"
+            },
+            7: {
+                title: "Broccoli",
+                description: "Looking like tiny trees that would make any giant feel like a vegetarian! Our broccoli is so fresh, it still thinks it's a superhero fighting off junk food. 🥦",
+                facts: "Each floret is actually a tiny umbrella for garden gnomes (but we've never caught them using them)."
+            },
+            8: {
+                title: "Spinach",
+                description: "Popeye's favorite, now in your kitchen! So packed with iron, it sets off metal detectors! Our spinach makes your muscles' muscles have muscles. 🍃",
+                facts: "Each leaf contains enough energy to power a small sailor's forearms for up to 3 hours!"
+            },
+            9: {
+                title: "Sweet Potatoes",
+                description: "The rebel potatoes that went to culinary school! These orange beauties are so sweet, they make desserts jealous. Perfect for those who can't decide between dinner and dessert! 🍠",
+                facts: "Our sweet potatoes are actually regular potatoes that watched too many romantic comedies!"
+            },
+            10: {
+                title: "Bell Peppers",
+                description: "The traffic lights of the vegetable world! Red, yellow, and green peppers so crisp, they make your taste buds stop, drop, and roll! Perfect for adding a rainbow to your stir-fry. 🫑",
+                facts: "These peppers are so well-rounded, they once applied to be Olympic rings!"
+            }
+        };
+
+        function showProductDetails(productId) {
+            const modal = document.getElementById('productModal');
+            const product = productDescriptions[productId] || {
+                title: "Fresh Produce",
+                description: "Nature's finest selection, handpicked for your enjoyment!",
+                facts: "100% guaranteed to be a vegetable or fruit!"
+            };
+
+            document.getElementById('modalTitle').textContent = product.title;
+            document.getElementById('modalDescription').textContent = product.description;
+            document.getElementById('modalFacts').textContent = product.facts;
+            
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('productModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Existing addToBasket function
         function addToBasket(productId) {
+            event.stopPropagation(); // Prevent modal from opening when clicking the button
             const quantitySelect = document.getElementById('quantity-' + productId);
             const quantity = parseFloat(quantitySelect.value);
             
@@ -153,7 +313,6 @@
                 return;
             }
             
-            // TODO: Implement basket functionality
             alert('Added ' + quantity + 'KG to basket');
             quantitySelect.value = 0;
         }
