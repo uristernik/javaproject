@@ -1,9 +1,12 @@
 package com.example.dataaccessservice.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,5 +96,49 @@ public class DatabaseService {
                 throw new RuntimeException("Insufficient stock for product ID: " + update.get("productId"));
             }
         }
+    }
+
+    public List<Map<String, Object>> getUserOrders(Long userId) {
+        String sql = """
+            SELECT 
+                o.orderid,
+                o.deliveryaddress,
+                o.totalprice,
+                json_agg(
+                    json_build_object(
+                        'description', i.description,
+                        'quantitykg', oi.quantitykg,
+                        'pricepkg', oi.priceperkg
+                    )
+                ) as items
+            FROM orders o
+            JOIN order_items oi ON o.orderid = oi.orderid
+            JOIN inventory i ON oi.productid = i.productid
+            WHERE o.userid = ?
+            GROUP BY o.orderid, o.deliveryaddress, o.totalprice
+            ORDER BY o.orderid DESC
+        """;
+        
+        return jdbcTemplate.query(sql, 
+            (rs, rowNum) -> {
+                Map<String, Object> order = new HashMap<>();
+                order.put("orderid", rs.getLong("orderid"));
+                order.put("deliveryaddress", rs.getString("deliveryaddress"));
+                order.put("totalprice", rs.getInt("totalprice"));
+                
+                // Parse the JSON string into a List
+                String itemsJson = rs.getString("items");
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    List<?> items = mapper.readValue(itemsJson, List.class);
+                    order.put("items", items);
+                } catch (Exception e) {
+                    throw new RuntimeException("Error parsing order items JSON", e);
+                }
+                
+                return order;
+            },
+            userId
+        );
     }
 }

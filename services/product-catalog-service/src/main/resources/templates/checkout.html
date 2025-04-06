@@ -226,12 +226,12 @@
                 localStorage.removeItem('basket');
                 
                 // Show success message
-                successDiv.textContent = 'Order placed successfully! Redirecting to catalog...';
+                successDiv.textContent = 'Order placed successfully! Redirecting to orders...';
                 successDiv.style.display = 'block';
                 
                 // Redirect after 2 seconds
                 setTimeout(() => {
-                    window.location.href = '/catalog';
+                    window.location.href = '/orders';
                 }, 2000);
 
             } catch (error) {

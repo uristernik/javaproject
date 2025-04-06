@@ -44,4 +44,9 @@ public class DataAccessController {
         databaseService.updateInventoryBatch(updates);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/orders/user/{userId}")
+    public ResponseEntity<List<Map<String, Object>>> getUserOrders(@PathVariable Long userId) {
+        return ResponseEntity.ok(databaseService.getUserOrders(userId));
+    }
 }
