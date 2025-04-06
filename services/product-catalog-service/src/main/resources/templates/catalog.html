@@ -10,15 +10,105 @@
             background-color: #f5f5f5;
         }
         
-        .container {
-            max-width: 1200px;
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
             margin: 0 auto;
         }
-        
-        h1 {
+
+        .catalog-container {
+            flex: 1;
+        }
+
+        .basket-container {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .basket-title {
             color: #2c3e50;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        .basket-items {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .basket-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .basket-item-info {
+            flex: 1;
+        }
+
+        .basket-item-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .basket-item-quantity {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .basket-item-price {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .remove-item {
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 10px;
+        }
+
+        .basket-total {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .checkout-button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        .checkout-button:hover {
+            background-color: #219a52;
+        }
+
+        .empty-basket {
             text-align: center;
-            margin-bottom: 30px;
+            color: #7f8c8d;
+            padding: 20px 0;
         }
         
         .product-grid {
@@ -197,47 +287,60 @@
 </head>
 <body>
     <div id="message-container" style="display: none;"></div>
-    <div class="container">
-        <h1>Fresh Produce Catalog</h1>
-        
-        <div class="product-grid">
-            <div th:each="product : ${products}" 
-                 class="product-card" 
-                 th:onclick="'showProductDetails(' + ${product.productid} + ')'"
-                 th:data-stock="${product.stockkg}">
-                <h3 th:text="${product.description}">Product Name</h3>
-                
-                <div class="price" th:text="'$' + ${product.priceperkg} + '/KG'">$0/KG</div>
-                
-                <span class="stock-status"
-                      th:with="stock=${product.stockkg}"
-                      th:classappend="${stock > 100 ? 'stock-high' : 
-                                    stock > 50 ? 'stock-medium' : 'stock-low'}"
-                      th:text="${stock > 100 ? 'High Stock' :
-                               stock > 50 ? 'Medium Stock' : 'Low Stock'}">
-                    Stock Status
-                </span>
-                
-                <div>
-                    <label class="quantity-label" th:for="'quantity-' + ${product.productid}">Select Quantity:</label>
-                    <select th:id="'quantity-' + ${product.productid}"
-                            class="quantity-select"
-                            th:data-price="${product.priceperkg}"
-                            onclick="event.stopPropagation()">
-                        <option value="0">0 KG</option>
-                        <option th:each="i : ${#numbers.sequence(1, 100)}"
-                                th:value="${i * 0.5}"
-                                th:text="${i * 0.5 + ' KG'}">
-                        </option>
-                    </select>
+    <div class="main-container">
+        <div class="catalog-container">
+            <h1>Fresh Produce Catalog</h1>
+            <div class="product-grid">
+                <div th:each="product : ${products}" 
+                     class="product-card" 
+                     th:onclick="'showProductDetails(' + ${product.productid} + ')'"
+                     th:data-stock="${product.stockkg}">
+                    <h3 th:text="${product.description}">Product Name</h3>
+                    
+                    <div class="price" th:text="'$' + ${product.priceperkg} + '/KG'">$0/KG</div>
+                    
+                    <span class="stock-status"
+                          th:with="stock=${product.stockkg}"
+                          th:classappend="${stock > 100 ? 'stock-high' : 
+                                        stock > 50 ? 'stock-medium' : 'stock-low'}"
+                          th:text="${stock > 100 ? 'High Stock' :
+                                   stock > 50 ? 'Medium Stock' : 'Low Stock'}">
+                        Stock Status
+                    </span>
+                    
+                    <div>
+                        <label class="quantity-label" th:for="'quantity-' + ${product.productid}">Select Quantity:</label>
+                        <select th:id="'quantity-' + ${product.productid}"
+                                class="quantity-select"
+                                th:data-price="${product.priceperkg}"
+                                onclick="event.stopPropagation()">
+                            <option value="0">0 KG</option>
+                            <option th:each="i : ${#numbers.sequence(1, 100)}"
+                                    th:value="${i * 0.5}"
+                                    th:text="${i * 0.5 + ' KG'}">
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <button class="add-to-basket"
+                            th:onclick="'event.stopPropagation(); addToBasket(' + ${product.productid} + ')'"
+                            type="button">
+                        Add to Basket
+                    </button>
                 </div>
-                
-                <button class="add-to-basket"
-                        th:onclick="'event.stopPropagation(); addToBasket(' + ${product.productid} + ')'"
-                        type="button">
-                    Add to Basket
-                </button>
             </div>
+        </div>
+
+        <div class="basket-container">
+            <h2 class="basket-title">Your Basket</h2>
+            <div class="basket-items" id="basketItems">
+                <div class="empty-basket">Your basket is empty</div>
+            </div>
+            <div class="basket-total">
+                <span>Total:</span>
+                <span id="basketTotal">$0.00</span>
+            </div>
+            <button class="checkout-button" onclick="checkout()" disabled>Checkout</button>
         </div>
     </div>
 
@@ -306,6 +409,9 @@
             }
         };
 
+        // Basket state
+        let basket = new Map(); // Map<productId, {description, quantity, pricePerKg}>
+
         function showProductDetails(productId) {
             const modal = document.getElementById('productModal');
             const product = productDescriptions[productId] || {
@@ -333,9 +439,8 @@
             }
         }
 
-        // Existing addToBasket function
         function addToBasket(productId) {
-            event.stopPropagation(); // Prevent modal from opening when clicking the button
+            event.stopPropagation();
             const quantitySelect = document.getElementById('quantity-' + productId);
             const quantity = parseFloat(quantitySelect.value);
             
@@ -344,17 +449,83 @@
                 return;
             }
 
-            // Get the available stock from the data attribute
             const productCard = quantitySelect.closest('.product-card');
-            const availableStock = parseInt(productCard.getAttribute('data-stock'));
+            const availableStock = parseFloat(productCard.getAttribute('data-stock'));
             
             if (quantity > availableStock) {
-                showMessage(`Sorry, only ${availableStock}KG available in stock`, 'error');
+                showMessage(`Sorry, only ${availableStock.toFixed(1)}KG available in stock`, 'error');
                 return;
+            }
+
+            // Get product details
+            const description = productCard.querySelector('h3').textContent;
+            const pricePerKg = parseFloat(quantitySelect.getAttribute('data-price'));
+
+            // Add to basket
+            const existingItem = basket.get(productId);
+            if (existingItem) {
+                const newQuantity = existingItem.quantity + quantity;
+                if (newQuantity > availableStock) {
+                    showMessage(`Cannot add more. Total would exceed available stock`, 'error');
+                    return;
+                }
+                existingItem.quantity = newQuantity;
+            } else {
+                basket.set(productId, {
+                    description,
+                    quantity,
+                    pricePerKg
+                });
             }
             
             showMessage(`Added ${quantity}KG to basket`, 'success');
             quantitySelect.value = 0;
+            updateBasketDisplay();
+        }
+
+        function removeFromBasket(productId) {
+            basket.delete(productId);
+            updateBasketDisplay();
+            showMessage('Item removed from basket', 'success');
+        }
+
+        function updateBasketDisplay() {
+            const basketItemsDiv = document.getElementById('basketItems');
+            const checkoutButton = document.querySelector('.checkout-button');
+            
+            if (basket.size === 0) {
+                basketItemsDiv.innerHTML = '<div class="empty-basket">Your basket is empty</div>';
+                checkoutButton.disabled = true;
+                return;
+            }
+
+            let total = 0;
+            let basketHtml = '';
+
+            for (const [productId, item] of basket) {
+                const itemTotal = item.quantity * item.pricePerKg;
+                total += itemTotal;
+
+                basketHtml += `
+                    <div class="basket-item">
+                        <div class="basket-item-info">
+                            <div class="basket-item-name">${item.description}</div>
+                            <div class="basket-item-quantity">${item.quantity}KG × $${item.pricePerKg}/KG</div>
+                        </div>
+                        <div class="basket-item-price">$${itemTotal.toFixed(2)}</div>
+                        <span class="remove-item" onclick="removeFromBasket(${productId})">×</span>
+                    </div>
+                `;
+            }
+
+            basketItemsDiv.innerHTML = basketHtml;
+            document.getElementById('basketTotal').textContent = `$${total.toFixed(2)}`;
+            checkoutButton.disabled = false;
+        }
+
+        function checkout() {
+            // TODO: Implement checkout functionality
+            alert('Checkout functionality coming soon!');
         }
 
         function showMessage(message, type) {
