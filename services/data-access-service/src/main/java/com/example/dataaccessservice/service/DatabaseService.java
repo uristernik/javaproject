@@ -30,13 +30,25 @@ public class DatabaseService {
     public void updateTableData(String tableName, Map<String, Object> updateData) {
         if ("inventory".equalsIgnoreCase(tableName)) {
             Long productId = ((Number) updateData.get("productId")).longValue();
-            Integer stockKG = ((Number) updateData.get("stockKG")).intValue();
             
-            String sql = "UPDATE inventory SET stockkg = ? WHERE productid = ?";
-            int rowsAffected = jdbcTemplate.update(sql, stockKG, productId);
+            if (updateData.containsKey("stockKG")) {
+                Integer stockKG = ((Number) updateData.get("stockKG")).intValue();
+                String sql = "UPDATE inventory SET stockkg = ? WHERE productid = ?";
+                int rowsAffected = jdbcTemplate.update(sql, stockKG, productId);
+                
+                if (rowsAffected == 0) {
+                    throw new RuntimeException("Product not found with ID: " + productId);
+                }
+            }
             
-            if (rowsAffected == 0) {
-                throw new RuntimeException("Product not found with ID: " + productId);
+            if (updateData.containsKey("pricePerKG")) {
+                Integer pricePerKG = ((Number) updateData.get("pricePerKG")).intValue();
+                String sql = "UPDATE inventory SET priceperkg = ? WHERE productid = ?";
+                int rowsAffected = jdbcTemplate.update(sql, pricePerKG, productId);
+                
+                if (rowsAffected == 0) {
+                    throw new RuntimeException("Product not found with ID: " + productId);
+                }
             }
         } else {
             throw new RuntimeException("Updates to table " + tableName + " are not supported");
