@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Product Catalog</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .catalog-container {
+            flex: 1;
+        }
+
+        .basket-container {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .basket-title {
+            color: #2c3e50;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        .basket-items {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .basket-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .basket-item-info {
+            flex: 1;
+        }
+
+        .basket-item-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .basket-item-quantity {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .basket-item-price {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .remove-item {
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 10px;
+        }
+
+        .basket-total {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .checkout-button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        .checkout-button:hover {
+            background-color: #219a52;
+        }
+
+        .empty-basket {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px 0;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .product-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        .product-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        
+        .stock-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            margin: 10px 0;
+        }
+        
+        .stock-high { background-color: #27ae60; color: white; }
+        .stock-medium { background-color: #f1c40f; color: black; }
+        .stock-low { background-color: #e74c3c; color: white; }
+        
+        .add-to-basket {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1em;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        
+        .add-to-basket:hover {
+            background-color: #2980b9;
+        }
+        
+        .quantity-select {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 1em;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+        
+        .quantity-select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .quantity-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            width: 70%;
+            max-width: 500px;
+            border-radius: 8px;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {transform: translateY(-100px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        .modal-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-right: 20px;
+        }
+
+        .modal-description {
+            color: #34495e;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .modal-facts {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        #message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 4px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .success-message {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .error-message {
+            background-color: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="message-container" style="display: none;"></div>
+    <div class="main-container">
+        <div class="catalog-container">
+            <h1>Fresh Produce Catalog</h1>
+            <div class="product-grid">
+                <div th:each="product : ${products}" 
+                     class="product-card" 
+                     th:onclick="'showProductDetails(' + ${product.productid} + ')'"
+                     th:data-stock="${product.stockkg}">
+                    <h3 th:text="${product.description}">Product Name</h3>
+                    
+                    <div class="price" th:text="'$' + ${product.priceperkg} + '/KG'">$0/KG</div>
+                    
+                    <span class="stock-status"
+                          th:with="stock=${product.stockkg}"
+                          th:classappend="${stock > 100 ? 'stock-high' : 
+                                        stock > 50 ? 'stock-medium' : 'stock-low'}"
+                          th:text="${stock > 100 ? 'High Stock' :
+                                   stock > 50 ? 'Medium Stock' : 'Low Stock'}">
+                        Stock Status
+                    </span>
+                    
+                    <div>
+                        <label class="quantity-label" th:for="'quantity-' + ${product.productid}">Select Quantity:</label>
+                        <select th:id="'quantity-' + ${product.productid}"
+                                class="quantity-select"
+                                th:data-price="${product.priceperkg}"
+                                onclick="event.stopPropagation()">
+                            <option value="0">0 KG</option>
+                            <option th:each="i : ${#numbers.sequence(1, 100)}"
+                                    th:value="${i * 0.5}"
+                                    th:text="${i * 0.5 + ' KG'}">
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <button class="add-to-basket"
+                            th:onclick="'event.stopPropagation(); addToBasket(' + ${product.productid} + ')'"
+                            type="button">
+                        Add to Basket
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="basket-container">
+            <h2 class="basket-title">Your Basket</h2>
+            <div class="basket-items" id="basketItems">
+                <div class="empty-basket">Your basket is empty</div>
+            </div>
+            <div class="basket-total">
+                <span>Total:</span>
+                <span id="basketTotal">$0.00</span>
+            </div>
+            <button class="checkout-button" onclick="checkout()" disabled>Checkout</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <div id="modalDescription" class="modal-description"></div>
+            <div id="modalFacts" class="modal-facts"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Product descriptions database
+        const productDescriptions = {
+            1: {
+                title: "Organic Apples",
+                description: "These aren't just any apples – they're nature's candy! Our organic apples are so crisp, even the trees are jealous. Each bite is like a high-five for your taste buds! 🍎",
+                facts: "Fun fact: Our apples are so fresh, they still have their Instagram accounts active!"
+            },
+            2: {
+                title: "Fresh Bananas",
+                description: "Meet the ultimate comfort food that comes in its own wrapper! Our bananas are so perfectly curved, they make mathematicians question their protractors. 🍌",
+                facts: "Warning: These bananas may cause spontaneous monkey impressions!"
+            },
+            3: {
+                title: "Carrots",
+                description: "These carrots are so orange, they make sunsets look pale! Perfect vision not guaranteed, but extreme deliciousness is! Your rabbit will give you a five-star review. 🥕",
+                facts: "Legend says our carrots can see in the dark (but we haven't caught them doing it yet)."
+            },
+            4: {
+                title: "Tomatoes",
+                description: "These tomatoes are so red, they make fire trucks look pink! They're the superheroes of your salad, ready to save your sandwich from blandness. 🍅",
+                facts: "Our tomatoes have been known to cause spontaneous Italian accent syndrome!"
+            },
+            5: {
+                title: "Potatoes",
+                description: "The most versatile vegetable in the world! These spuds are so good, they make French fries dream of being them when they grow up. 🥔",
+                facts: "These potatoes have more eyes than a spy convention!"
+            },
+            6: {
+                title: "Oranges",
+                description: "These oranges are so juicy, they come with their own splash zone! Nature's perfect snack, pre-segmented by Mother Nature herself. Warning: May cause extreme vitamin C euphoria! 🍊",
+                facts: "Our oranges are so bright, they're banned from midnight snacking - they'll wake up the whole house!"
+            },
+            7: {
+                title: "Broccoli",
+                description: "Looking like tiny trees that would make any giant feel like a vegetarian! Our broccoli is so fresh, it still thinks it's a superhero fighting off junk food. 🥦",
+                facts: "Each floret is actually a tiny umbrella for garden gnomes (but we've never caught them using them)."
+            },
+            8: {
+                title: "Spinach",
+                description: "Popeye's favorite, now in your kitchen! So packed with iron, it sets off metal detectors! Our spinach makes your muscles' muscles have muscles. 🍃",
+                facts: "Each leaf contains enough energy to power a small sailor's forearms for up to 3 hours!"
+            },
+            9: {
+                title: "Sweet Potatoes",
+                description: "The rebel potatoes that went to culinary school! These orange beauties are so sweet, they make desserts jealous. Perfect for those who can't decide between dinner and dessert! 🍠",
+                facts: "Our sweet potatoes are actually regular potatoes that watched too many romantic comedies!"
+            },
+            10: {
+                title: "Bell Peppers",
+                description: "The traffic lights of the vegetable world! Red, yellow, and green peppers so crisp, they make your taste buds stop, drop, and roll! Perfect for adding a rainbow to your stir-fry. 🫑",
+                facts: "These peppers are so well-rounded, they once applied to be Olympic rings!"
+            }
+        };
+
+        // Basket state
+        let basket = new Map(); // Map<productId, {description, quantity, pricePerKg}>
+
+        function showProductDetails(productId) {
+            const modal = document.getElementById('productModal');
+            const product = productDescriptions[productId] || {
+                title: "Fresh Produce",
+                description: "Nature's finest selection, handpicked for your enjoyment!",
+                facts: "100% guaranteed to be a vegetable or fruit!"
+            };
+
+            document.getElementById('modalTitle').textContent = product.title;
+            document.getElementById('modalDescription').textContent = product.description;
+            document.getElementById('modalFacts').textContent = product.facts;
+            
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('productModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function addToBasket(productId) {
+            event.stopPropagation();
+            const quantitySelect = document.getElementById('quantity-' + productId);
+            const quantity = parseFloat(quantitySelect.value);
+            
+            if (quantity <= 0) {
+                showMessage('Please select a quantity', 'error');
+                return;
+            }
+
+            const productCard = quantitySelect.closest('.product-card');
+            const availableStock = parseFloat(productCard.getAttribute('data-stock'));
+            
+            if (quantity > availableStock) {
+                showMessage(`Sorry, only ${availableStock.toFixed(1)}KG available in stock`, 'error');
+                return;
+            }
+
+            // Get product details
+            const description = productCard.querySelector('h3').textContent;
+            const pricePerKg = parseFloat(quantitySelect.getAttribute('data-price'));
+
+            // Add to basket
+            const existingItem = basket.get(productId);
+            if (existingItem) {
+                const newQuantity = existingItem.quantity + quantity;
+                if (newQuantity > availableStock) {
+                    showMessage(`Cannot add more. Total would exceed available stock`, 'error');
+                    return;
+                }
+                existingItem.quantity = newQuantity;
+            } else {
+                basket.set(productId, {
+                    description,
+                    quantity,
+                    pricePerKg
+                });
+            }
+            
+            showMessage(`Added ${quantity}KG to basket`, 'success');
+            quantitySelect.value = 0;
+            updateBasketDisplay();
+        }
+
+        function removeFromBasket(productId) {
+            basket.delete(productId);
+            updateBasketDisplay();
+            showMessage('Item removed from basket', 'success');
+        }
+
+        function updateBasketDisplay() {
+            const basketItemsDiv = document.getElementById('basketItems');
+            const checkoutButton = document.querySelector('.checkout-button');
+            
+            if (basket.size === 0) {
+                basketItemsDiv.innerHTML = '<div class="empty-basket">Your basket is empty</div>';
+                checkoutButton.disabled = true;
+                return;
+            }
+
+            let total = 0;
+            let basketHtml = '';
+
+            for (const [productId, item] of basket) {
+                const itemTotal = item.quantity * item.pricePerKg;
+                total += itemTotal;
+
+                basketHtml += `
+                    <div class="basket-item">
+                        <div class="basket-item-info">
+                            <div class="basket-item-name">${item.description}</div>
+                            <div class="basket-item-quantity">${item.quantity}KG × $${item.pricePerKg}/KG</div>
+                        </div>
+                        <div class="basket-item-price">$${itemTotal.toFixed(2)}</div>
+                        <span class="remove-item" onclick="removeFromBasket(${productId})">×</span>
+                    </div>
+                `;
+            }
+
+            basketItemsDiv.innerHTML = basketHtml;
+            document.getElementById('basketTotal').textContent = `$${total.toFixed(2)}`;
+            checkoutButton.disabled = false;
+        }
+
+        function checkout() {
+            // Store basket in localStorage
+            localStorage.setItem('basket', JSON.stringify(Array.from(basket.entries())));
+            // Redirect to checkout page
+            window.location.href = '/checkout';
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message-container');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.style.display = 'block';
+            
+            // Hide message after 3 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

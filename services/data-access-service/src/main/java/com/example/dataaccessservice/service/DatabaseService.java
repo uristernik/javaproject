@@ -1,9 +1,12 @@
 package com.example.dataaccessservice.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,11 +30,10 @@ public class DatabaseService {
     public void updateTableData(String tableName, Map<String, Object> updateData) {
         if ("inventory".equalsIgnoreCase(tableName)) {
             Long productId = ((Number) updateData.get("productId")).longValue();
-            Integer quantityKG = ((Number) updateData.get("quantityKG")).intValue();
             Integer stockKG = ((Number) updateData.get("stockKG")).intValue();
             
-            String sql = "UPDATE inventory SET quantitykg = ?, stockkg = ? WHERE productid = ?";
-            int rowsAffected = jdbcTemplate.update(sql, quantityKG, stockKG, productId);
+            String sql = "UPDATE inventory SET stockkg = ? WHERE productid = ?";
+            int rowsAffected = jdbcTemplate.update(sql, stockKG, productId);
             
             if (rowsAffected == 0) {
                 throw new RuntimeException("Product not found with ID: " + productId);
@@ -39,5 +41,104 @@ public class DatabaseService {
         } else {
             throw new RuntimeException("Updates to table " + tableName + " are not supported");
         }
+    }
+
+    @Transactional
+    public Long createOrder(Map<String, Object> orderData) {
+        // Verify user exists
+        Long userId = ((Number) orderData.get("userId")).longValue();
+        String checkUserSql = "SELECT COUNT(*) FROM USERS WHERE userId = ?";
+        int userCount = jdbcTemplate.queryForObject(checkUserSql, Integer.class, userId);
+        if (userCount == 0) {
+            throw new RuntimeException("User not found with ID: " + userId);
+        }
+
+        // Get the delivery address as string
+        String deliveryAddress = orderData.get("deliveryAddress").toString();
+        if (deliveryAddress == null || deliveryAddress.trim().isEmpty()) {
+            throw new IllegalArgumentException("deliveryAddress is required");
+        }
+
+        // Insert into ORDERS table
+        String orderSql = "INSERT INTO ORDERS (userID, deliveryAddress, totalPrice) VALUES (?, ?, ?) RETURNING orderID";
+        Long orderId = jdbcTemplate.queryForObject(orderSql, Long.class,
+            userId,
+            deliveryAddress,
+            ((Number) orderData.get("totalPrice")).intValue());
+
+        // Insert order items
+        String itemsSql = "INSERT INTO ORDER_ITEMS (orderID, productID, quantityKG, pricePerKG) VALUES (?, ?, ?, ?)";
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> items = (List<Map<String, Object>>) orderData.get("items");
+        
+        for (Map<String, Object> item : items) {
+            jdbcTemplate.update(itemsSql,
+                orderId,
+                ((Number) item.get("productId")).longValue(),
+                ((Number) item.get("quantity")).intValue(),
+                ((Number) item.get("pricePerKG")).intValue());
+        }
+
+        return orderId;
+    }
+
+    @Transactional
+    public void updateInventoryBatch(List<Map<String, Object>> updates) {
+        String sql = "UPDATE inventory SET stockkg = stockkg - ? WHERE productid = ? AND stockkg >= ?";
+        
+        for (Map<String, Object> update : updates) {
+            int rowsAffected = jdbcTemplate.update(sql,
+                update.get("quantity"),
+                update.get("productId"),
+                update.get("quantity"));
+                
+            if (rowsAffected == 0) {
+                throw new RuntimeException("Insufficient stock for product ID: " + update.get("productId"));
+            }
+        }
+    }
+
+    public List<Map<String, Object>> getUserOrders(Long userId) {
+        String sql = """
+            SELECT 
+                o.orderid,
+                o.deliveryaddress,
+                o.totalprice,
+                json_agg(
+                    json_build_object(
+                        'description', i.description,
+                        'quantitykg', oi.quantitykg,
+                        'pricepkg', oi.priceperkg
+                    )
+                ) as items
+            FROM orders o
+            JOIN order_items oi ON o.orderid = oi.orderid
+            JOIN inventory i ON oi.productid = i.productid
+            WHERE o.userid = ?
+            GROUP BY o.orderid, o.deliveryaddress, o.totalprice
+            ORDER BY o.orderid DESC
+        """;
+        
+        return jdbcTemplate.query(sql, 
+            (rs, rowNum) -> {
+                Map<String, Object> order = new HashMap<>();
+                order.put("orderid", rs.getLong("orderid"));
+                order.put("deliveryaddress", rs.getString("deliveryaddress"));
+                order.put("totalprice", rs.getInt("totalprice"));
+                
+                // Parse the JSON string into a List
+                String itemsJson = rs.getString("items");
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    List<?> items = mapper.readValue(itemsJson, List.class);
+                    order.put("items", items);
+                } catch (Exception e) {
+                    throw new RuntimeException("Error parsing order items JSON", e);
+                }
+                
+                return order;
+            },
+            userId
+        );
     }
 }

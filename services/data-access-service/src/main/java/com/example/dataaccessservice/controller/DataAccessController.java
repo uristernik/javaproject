@@ -32,4 +32,21 @@ public class DataAccessController {
         databaseService.updateTableData(tableName, updateData);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/orders/create")
+    public ResponseEntity<Map<String, Object>> createOrder(@RequestBody Map<String, Object> orderData) {
+        Long orderId = databaseService.createOrder(orderData);
+        return ResponseEntity.ok(Map.of("orderId", orderId));
+    }
+
+    @PostMapping("/inventory/update-batch")
+    public ResponseEntity<Void> updateInventoryBatch(@RequestBody List<Map<String, Object>> updates) {
+        databaseService.updateInventoryBatch(updates);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/orders/user/{userId}")
+    public ResponseEntity<List<Map<String, Object>>> getUserOrders(@PathVariable Long userId) {
+        return ResponseEntity.ok(databaseService.getUserOrders(userId));
+    }
 }

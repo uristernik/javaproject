@@ -26,23 +26,21 @@ public class InventoryService {
                 .collect(Collectors.toList());
     }
 
-    public void addProduce(Long productId, Integer quantityKG) {
-        // Get current quantity
+    public void addProduce(Long productId, Integer quantityToAdd) {
+        // Get current stock
         InventoryItem currentItem = getInventoryItems().stream()
                 .filter(item -> item.getProductId().equals(productId))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // Calculate new quantities
-        int newQuantity = currentItem.getQuantityKG() + quantityKG;
-        int newStock = currentItem.getStockKG() + quantityKG;
+        // Calculate new stock
+        int newStock = currentItem.getStockKG() + quantityToAdd;
         
-        // Update both quantity and stock through data-access-service
+        // Update stock through data-access-service
         webClient.post()
                 .uri("/api/data/tables/inventory/update")
                 .bodyValue(Map.of(
                     "productId", productId,
-                    "quantityKG", newQuantity,
                     "stockKG", newStock
                 ))
                 .retrieve()
@@ -54,7 +52,6 @@ public class InventoryService {
         InventoryItem item = new InventoryItem();
         item.setProductId(((Number) map.get("productid")).longValue());
         item.setDescription((String) map.get("description"));
-        item.setQuantityKG(((Number) map.get("quantitykg")).intValue());
         item.setStockKG(((Number) map.get("stockkg")).intValue());
         item.setPricePerKG(((Number) map.get("priceperkg")).intValue());
         return item;
@@ -93,8 +90,7 @@ public class InventoryService {
                 throw new RuntimeException("Product not found with ID: " + productId);
             }
 
-            // Calculate new quantities
-            int newQuantity = currentItem.getQuantityKG() + quantityToAdd;
+            // Calculate new stock
             int newStock = currentItem.getStockKG() + quantityToAdd;
 
             // Update through data-access-service
@@ -102,7 +98,6 @@ public class InventoryService {
                     .uri("/api/data/tables/inventory/update")
                     .bodyValue(Map.of(
                         "productId", productId,
-                        "quantityKG", newQuantity,
                         "stockKG", newStock
                     ))
                     .retrieve()
