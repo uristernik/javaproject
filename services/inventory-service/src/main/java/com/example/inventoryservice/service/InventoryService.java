@@ -105,4 +105,35 @@ public class InventoryService {
                     .block();
         }
     }
+
+    public void updatePrices(Map<String, String> prices) {
+        Map<Long, Integer> validPrices = prices.entrySet().stream()
+            .filter(entry -> entry.getKey().startsWith("prices[") && 
+                           entry.getKey().endsWith("]"))
+            .map(entry -> {
+                Long productId = Long.parseLong(entry.getKey()
+                    .replace("prices[", "")
+                    .replace("]", ""));
+                Integer price = Integer.parseInt(entry.getValue());
+                return new AbstractMap.SimpleEntry<>(productId, price);
+            })
+            .filter(entry -> entry.getValue() > 0)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        if (validPrices.isEmpty()) {
+            throw new RuntimeException("No valid prices provided");
+        }
+
+        for (Map.Entry<Long, Integer> entry : validPrices.entrySet()) {
+            webClient.post()
+                    .uri("/api/data/tables/inventory/update")
+                    .bodyValue(Map.of(
+                        "productId", entry.getKey(),
+                        "pricePerKG", entry.getValue()
+                    ))
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .block();
+        }
+    }
 }

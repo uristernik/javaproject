@@ -47,4 +47,23 @@ class InventoryController {
             return "redirect:/farmers";
         }
     }
+
+    @GetMapping("/admin/prices")
+    public String managePrices(Model model) {
+        model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
+        return "manage-prices";
+    }
+
+    @PostMapping("/admin/prices/update")
+    public String updatePrices(@RequestParam Map<String, String> prices,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            inventoryService.updatePrices(prices);
+            redirectAttributes.addFlashAttribute("success", "Prices updated successfully!");
+            return "redirect:/admin/prices";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update prices: " + e.getMessage());
+            return "redirect:/admin/prices";
+        }
+    }
 }
