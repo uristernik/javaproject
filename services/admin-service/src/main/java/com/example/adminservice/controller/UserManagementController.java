@@ -15,52 +15,58 @@ public class UserManagementController {
 
     @Autowired
     private UserManagementService userManagementService;
-    
+
     @GetMapping("/")
     public String home() {
-        return "redirect:/users";
+        return "redirect:/admin/users";
     }
-    
+
     @GetMapping("/users")
     public String listUsers(Model model) {
         List<User> users = userManagementService.getAllUsers();
         model.addAttribute("users", users);
         return "users";
     }
-    
+
     @PostMapping("/users/{userId}/delete")
-    public String deleteUser(@PathVariable Long userId, RedirectAttributes redirectAttributes) {
+    public String deleteUser(@PathVariable Long userId, Model model) {
         boolean success = userManagementService.deleteUser(userId);
-        
+
         if (success) {
-            redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully");
+            model.addAttribute("successMessage", "User deleted successfully");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete user");
+            model.addAttribute("errorMessage", "Failed to delete user");
         }
-        
-        return "redirect:/users";
+
+        // Get the updated list of users and return the users page directly
+        List<User> users = userManagementService.getAllUsers();
+        model.addAttribute("users", users);
+        return "users";
     }
-    
+
     @GetMapping("/users/{userId}/reset-password")
     public String showResetPasswordForm(@PathVariable Long userId, Model model) {
         model.addAttribute("userId", userId);
         return "reset-password";
     }
-    
+
     @PostMapping("/users/{userId}/reset-password")
     public String resetPassword(
             @PathVariable Long userId,
             @RequestParam String newPassword,
-            RedirectAttributes redirectAttributes) {
-        
+            Model model) {
+
         boolean success = userManagementService.resetPassword(userId, newPassword);
-        
+
         if (success) {
-            redirectAttributes.addFlashAttribute("successMessage", "Password reset successfully");
+            model.addAttribute("successMessage", "Password reset successfully");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to reset password");
+            model.addAttribute("errorMessage", "Failed to reset password");
         }
-        
-        return "redirect:/users";
+
+        // Get the updated list of users and return the users page directly
+        List<User> users = userManagementService.getAllUsers();
+        model.addAttribute("users", users);
+        return "users";
     }
 }

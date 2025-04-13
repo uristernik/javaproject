@@ -163,8 +163,8 @@
                         <span th:unless="${user.isAdmin()}" class="user-badge" th:text="${user.typeAsString}"></span>
                     </td>
                     <td class="actions">
-                        <a th:href="@{/users/{id}/reset-password(id=${user.id})}" class="btn btn-warning">Reset Password</a>
-                        <form th:action="@{/users/{id}/delete(id=${user.id})}" method="post" style="display: inline;">
+                        <a th:href="@{/admin/users/{userId}/reset-password(userId=${user.id})}" class="btn btn-warning">Reset Password</a>
+                        <form th:action="@{/admin/users/{userId}/delete(userId=${user.id})}" method="post" style="display: inline;">
                             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
                         </form>
                     </td>
