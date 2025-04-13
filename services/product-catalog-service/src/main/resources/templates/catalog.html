@@ -175,6 +175,28 @@
             background-color: #2980b9;
         }
 
+        .product-image {
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-image img:hover {
+            transform: scale(1.05);
+        }
+
         .quantity-select {
             width: 100%;
             padding: 8px;
@@ -220,6 +242,27 @@
             max-width: 500px;
             border-radius: 8px;
             animation: modalSlide 0.3s ease-out;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-image-container {
+            width: 150px;
+            height: 150px;
+            margin-right: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         @keyframes modalSlide {
@@ -298,6 +341,19 @@
                      class="product-card"
                      th:onclick="'showProductDetails(' + ${product.productid} + ')'"
                      th:data-stock="${product.stockkg}">
+                    <div class="product-image">
+                        <!-- Simple image display based on product description using direct URLs -->
+                        <img th:if="${product.description == 'Organic Apples'}" src="https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="apples.jpg">
+                        <img th:if="${product.description == 'Fresh Bananas'}" src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="bananas.jpg">
+                        <img th:if="${product.description == 'Carrots'}" src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="carrots.jpg">
+                        <img th:if="${product.description == 'Tomatoes'}" src="https://images.unsplash.com/photo-1582284540020-8acbe03f4924?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="tomatoes.jpg">
+                        <img th:if="${product.description == 'Potatoes'}" src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="potatoes.jpg">
+                        <img th:if="${product.description == 'Oranges'}" src="https://images.unsplash.com/photo-1582979512210-99b6a53386f9?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="oranges.jpg">
+                        <img th:if="${product.description == 'Broccoli'}" src="https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="broccoli.jpg">
+                        <img th:if="${product.description == 'Spinach'}" src="https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="spinach.jpg">
+                        <img th:if="${product.description == 'Sweet Potatoes'}" src="https://www.publicdomainpictures.net/pictures/310000/velka/sweet-potato-crop.jpg" th:alt="${product.description}" th:data-img="sweet_potatoes.jpg">
+                        <img th:if="${product.description == 'Bell Peppers'}" src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=300&h=200&fit=crop" th:alt="${product.description}" th:data-img="bell_peppers.jpg">
+                    </div>
                     <h3 th:text="${product.description}">Product Name</h3>
 
                     <div class="price" th:text="'$' + ${product.priceperkg} + '/KG'">$0/KG</div>
@@ -351,7 +407,12 @@
     <div id="productModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle" class="modal-title"></h2>
+            <div class="modal-header">
+                <div class="modal-image-container">
+                    <img id="modalImage" class="modal-image" src="" alt="Product Image">
+                </div>
+                <h2 id="modalTitle" class="modal-title"></h2>
+            </div>
             <div id="modalDescription" class="modal-description"></div>
             <div id="modalFacts" class="modal-facts"></div>
         </div>
@@ -420,12 +481,30 @@
             const product = productDescriptions[productId] || {
                 title: "Fresh Produce",
                 description: "Nature's finest selection, handpicked for your enjoyment!",
-                facts: "100% guaranteed to be a vegetable or fruit!"
+                facts: "100% guaranteed to be a vegetable or fruit!",
+                image: ""
             };
+
+            // Find the image URL for this product based on the product ID
+            let imageUrl = '';
+            switch(productId) {
+                case 1: imageUrl = 'https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=300&h=200&fit=crop'; break; // Apples
+                case 2: imageUrl = 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=300&h=200&fit=crop'; break; // Bananas
+                case 3: imageUrl = 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300&h=200&fit=crop'; break; // Carrots
+                case 4: imageUrl = 'https://images.unsplash.com/photo-1582284540020-8acbe03f4924?w=300&h=200&fit=crop'; break; // Tomatoes
+                case 5: imageUrl = 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=300&h=200&fit=crop'; break; // Potatoes
+                case 6: imageUrl = 'https://images.unsplash.com/photo-1582979512210-99b6a53386f9?w=300&h=200&fit=crop'; break; // Oranges
+                case 7: imageUrl = 'https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?w=300&h=200&fit=crop'; break; // Broccoli
+                case 8: imageUrl = 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=300&h=200&fit=crop'; break; // Spinach
+                case 9: imageUrl = 'https://www.publicdomainpictures.net/pictures/310000/velka/sweet-potato-crop.jpg'; break; // Sweet Potatoes
+                case 10: imageUrl = 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=300&h=200&fit=crop'; break; // Bell Peppers
+                default: imageUrl = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&h=200&fit=crop'; // Default
+            }
 
             document.getElementById('modalTitle').textContent = product.title;
             document.getElementById('modalDescription').textContent = product.description;
             document.getElementById('modalFacts').textContent = product.facts;
+            document.getElementById('modalImage').src = imageUrl;
 
             modal.style.display = 'block';
         }
