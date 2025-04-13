@@ -59,14 +59,17 @@ class InventoryController {
 
     @PostMapping("/admin/prices/update")
     public String updatePrices(@RequestParam Map<String, String> prices,
-                             RedirectAttributes redirectAttributes) {
+                             Model model) {
         try {
             inventoryService.updatePrices(prices);
-            redirectAttributes.addFlashAttribute("success", "Prices updated successfully!");
-            return "redirect:/admin/prices";
+            model.addAttribute("success", "Prices updated successfully!");
+            // Instead of redirecting, render the page directly
+            model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
+            return "manage-prices";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Failed to update prices: " + e.getMessage());
-            return "redirect:/admin/prices";
+            model.addAttribute("error", "Failed to update prices: " + e.getMessage());
+            model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
+            return "manage-prices";
         }
     }
 }
