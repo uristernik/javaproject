@@ -64,14 +64,17 @@
     </style>
 </head>
 <body>
+    <!-- Include the navigation bar -->
+    <div th:replace="fragments :: navbar"></div>
+
     <div class="container">
         <a href="/catalog" class="back-button">Back to Catalog</a>
-        <h1>Your Orders</h1>
-        
+        <h1>Orders for <span th:text="${userInfo.firstName + ' ' + userInfo.lastName}">User</span></h1>
+
         <div th:if="${orders.empty}">
             <p>You haven't placed any orders yet.</p>
         </div>
-        
+
         <div th:each="order : ${orders}" class="order-card">
             <div class="order-header">
                 <div>
@@ -81,7 +84,7 @@
                     <strong>Delivery Address:</strong> <span th:text="${order.deliveryaddress}">123 Street</span>
                 </div>
             </div>
-            
+
             <div class="order-items">
                 <div th:each="item : ${order.items}" class="order-item">
                     <div>
@@ -93,7 +96,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="total">
                 Total: $<span th:text="${order.totalprice}">100.00</span>
             </div>

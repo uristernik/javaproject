@@ -77,10 +77,20 @@ public class DatabaseService {
 
         // Insert into ORDERS table
         String orderSql = "INSERT INTO ORDERS (userID, deliveryAddress, totalPrice) VALUES (?, ?, ?) RETURNING orderID";
+
+        // Convert totalPrice from double to int if needed
+        Number totalPriceObj = (Number) orderData.get("totalPrice");
+        int totalPriceInt;
+        if (totalPriceObj instanceof Double || totalPriceObj instanceof Float) {
+            totalPriceInt = (int) Math.round(totalPriceObj.doubleValue());
+        } else {
+            totalPriceInt = totalPriceObj.intValue();
+        }
+
         Long orderId = jdbcTemplate.queryForObject(orderSql, Long.class,
             userId,
             deliveryAddress,
-            ((Number) orderData.get("totalPrice")).intValue());
+            totalPriceInt);
 
         // Insert order items
         String itemsSql = "INSERT INTO ORDER_ITEMS (orderID, productID, quantityKG, pricePerKG) VALUES (?, ?, ?, ?)";
@@ -88,11 +98,24 @@ public class DatabaseService {
         List<Map<String, Object>> items = (List<Map<String, Object>>) orderData.get("items");
 
         for (Map<String, Object> item : items) {
+            // Convert quantity from double to int (round to nearest integer)
+            double quantityDouble = ((Number) item.get("quantity")).doubleValue();
+            int quantityInt = (int) Math.round(quantityDouble);
+
+            // Convert price from double to int if needed
+            Number priceObj = (Number) item.get("pricePerKG");
+            int priceInt;
+            if (priceObj instanceof Double || priceObj instanceof Float) {
+                priceInt = (int) Math.round(priceObj.doubleValue());
+            } else {
+                priceInt = priceObj.intValue();
+            }
+
             jdbcTemplate.update(itemsSql,
                 orderId,
                 ((Number) item.get("productId")).longValue(),
-                ((Number) item.get("quantity")).intValue(),
-                ((Number) item.get("pricePerKG")).intValue());
+                quantityInt,
+                priceInt);
         }
 
         return orderId;
@@ -103,10 +126,19 @@ public class DatabaseService {
         String sql = "UPDATE inventory SET stockkg = stockkg - ? WHERE productid = ? AND stockkg >= ?";
 
         for (Map<String, Object> update : updates) {
+            // Convert quantity from double to int if needed
+            Number quantityObj = (Number) update.get("quantity");
+            int quantityInt;
+            if (quantityObj instanceof Double || quantityObj instanceof Float) {
+                quantityInt = (int) Math.round(quantityObj.doubleValue());
+            } else {
+                quantityInt = quantityObj.intValue();
+            }
+
             int rowsAffected = jdbcTemplate.update(sql,
-                update.get("quantity"),
+                quantityInt,
                 update.get("productId"),
-                update.get("quantity"));
+                quantityInt);
 
             if (rowsAffected == 0) {
                 throw new RuntimeException("Insufficient stock for product ID: " + update.get("productId"));

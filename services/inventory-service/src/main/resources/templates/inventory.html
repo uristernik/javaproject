@@ -9,18 +9,18 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         h1 {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 30px;
         }
-        
+
         .inventory-table {
             width: 100%;
             border-collapse: collapse;
@@ -29,44 +29,44 @@
             border-radius: 8px;
             overflow: hidden;
         }
-        
+
         .inventory-table th {
             background-color: #34495e;
             color: white;
             padding: 15px;
             text-align: left;
         }
-        
+
         .inventory-table td {
             padding: 12px 15px;
             border-bottom: 1px solid #ddd;
         }
-        
+
         .inventory-table tr:hover {
             background-color: #f8f9fa;
         }
-        
+
         .stock-status {
             padding: 5px 10px;
             border-radius: 15px;
             font-size: 0.9em;
         }
-        
+
         .stock-high {
             background-color: #27ae60;
             color: white;
         }
-        
+
         .stock-medium {
             background-color: #f1c40f;
             color: black;
         }
-        
+
         .stock-low {
             background-color: #e74c3c;
             color: white;
         }
-        
+
         .price {
             font-weight: bold;
             color: #2c3e50;
@@ -74,9 +74,12 @@
     </style>
 </head>
 <body>
+    <!-- Include the navigation bar -->
+    <div th:replace="fragments :: navbar"></div>
+
     <div class="container">
         <h1>Fresh Produce Inventory</h1>
-        
+
         <table class="inventory-table">
             <thead>
                 <tr>
@@ -93,7 +96,7 @@
                     <td>
                         <span class="stock-status"
                               th:with="stock=${item.stockKG != null ? item.stockKG : 0}"
-                              th:classappend="${stock > 100 ? 'stock-high' : 
+                              th:classappend="${stock > 100 ? 'stock-high' :
                                               stock > 50 ? 'stock-medium' : 'stock-low'}"
                               th:text="${stock > 100 ? 'High' :
                                        stock > 50 ? 'Medium' : 'Low'}">
