@@ -49,4 +49,23 @@ public class DataAccessController {
     public ResponseEntity<List<Map<String, Object>>> getUserOrders(@PathVariable Long userId) {
         return ResponseEntity.ok(databaseService.getUserOrders(userId));
     }
+
+    // User management endpoints
+
+    @GetMapping("/users")
+    public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
+        return ResponseEntity.ok(databaseService.getAllUsers());
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Boolean> deleteUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(databaseService.deleteUser(userId));
+    }
+
+    @PostMapping("/users/reset-password")
+    public ResponseEntity<Boolean> resetUserPassword(@RequestBody Map<String, Object> passwordData) {
+        Long userId = ((Number) passwordData.get("userId")).longValue();
+        String newPassword = (String) passwordData.get("newPassword");
+        return ResponseEntity.ok(databaseService.resetUserPassword(userId, newPassword));
+    }
 }
