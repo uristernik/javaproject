@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Welcome to Fresh Produce Market</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .welcome-section {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .welcome-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .welcome-header h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .user-name {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .farm-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .farm-info {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .farm-info h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+
+        .farm-gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .farm-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .farm-image:hover {
+            transform: scale(1.05);
+        }
+
+        .cta-section {
+            background-color: #27ae60;
+            color: white;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .cta-section h2 {
+            margin-top: 0;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #fff;
+            color: #27ae60;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .features-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .feature-card h3 {
+            color: #2c3e50;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .farm-section {
+                grid-template-columns: 1fr;
+            }
+
+            .features-section {
+                grid-template-columns: 1fr;
+            }
+
+            .farm-gallery {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Include the navigation bar -->
+    <div th:replace="fragments :: navbar"></div>
+
+    <div class="container">
+        <!-- Error message display -->
+        <div th:if="${errorMessage}" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #f5c6cb;">
+            <strong>Error:</strong> <span th:text="${errorMessage}">Error message</span>
+        </div>
+
+        <div class="welcome-section">
+            <div class="welcome-header">
+                <h1>Welcome, <span class="user-name" th:text="${userInfo.firstName + ' ' + userInfo.lastName}">User</span>!</h1>
+            </div>
+            <p>Thank you for choosing Fresh Produce Market. We're dedicated to bringing you the freshest, locally-sourced produce directly from our network of sustainable farms.</p>
+        </div>
+
+        <div class="farm-section">
+            <div class="farm-info">
+                <h2>Our Farm Story</h2>
+                <p>Fresh Produce Market was founded in 2010 with a simple mission: connect local farmers with consumers who care about quality, sustainability, and supporting local agriculture.</p>
+                <p>We work with over 50 family-owned farms across the region, ensuring that you get access to seasonal produce harvested at peak freshness. Our farmers use sustainable farming practices that protect the environment and produce the most flavorful fruits and vegetables.</p>
+                <p>By shopping with us, you're not just getting the best produce - you're supporting a network of local farmers and helping to build a more sustainable food system.</p>
+            </div>
+
+            <div class="farm-gallery">
+                <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Farm field" class="farm-image">
+                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Fresh vegetables" class="farm-image">
+                <img src="https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Farmer harvesting" class="farm-image">
+                <img src="https://images.unsplash.com/photo-1470072638680-0824bac3da9f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Sunrise over farm" class="farm-image">
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Ready to explore our fresh produce?</h2>
+            <p>Browse our catalog of seasonal fruits and vegetables, all sourced from local farms and delivered to your doorstep.</p>
+            <div class="cta-buttons">
+                <a href="/catalog" class="cta-button">Shop Now</a>
+                <a href="/farmers" class="cta-button">Meet Our Farmers</a>
+            </div>
+        </div>
+
+        <div class="features-section">
+            <div class="feature-card">
+                <div class="feature-icon">🌱</div>
+                <h3>Sustainable Farming</h3>
+                <p>All our produce comes from farms that use sustainable farming practices, protecting the environment for future generations.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🚚</div>
+                <h3>Farm to Table</h3>
+                <p>We deliver directly from farms to your table, ensuring maximum freshness and supporting local agriculture.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🍎</div>
+                <h3>Seasonal Variety</h3>
+                <p>Enjoy a wide variety of seasonal produce, harvested at peak ripeness for the best flavor and nutritional value.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

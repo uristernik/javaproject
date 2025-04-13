@@ -1,4 +1,4 @@
-package com.example.inventoryservice.model;
+package com.example.adminservice.model;
 
 public class InventoryItem {
     private Long productId;

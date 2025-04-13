@@ -3,16 +3,20 @@ package com.example.dataaccessservice.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class DatabaseService {
-    
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -30,22 +34,22 @@ public class DatabaseService {
     public void updateTableData(String tableName, Map<String, Object> updateData) {
         if ("inventory".equalsIgnoreCase(tableName)) {
             Long productId = ((Number) updateData.get("productId")).longValue();
-            
+
             if (updateData.containsKey("stockKG")) {
-                Integer stockKG = ((Number) updateData.get("stockKG")).intValue();
+                Double stockKG = ((Number) updateData.get("stockKG")).doubleValue();
                 String sql = "UPDATE inventory SET stockkg = ? WHERE productid = ?";
                 int rowsAffected = jdbcTemplate.update(sql, stockKG, productId);
-                
+
                 if (rowsAffected == 0) {
                     throw new RuntimeException("Product not found with ID: " + productId);
                 }
             }
-            
+
             if (updateData.containsKey("pricePerKG")) {
                 Integer pricePerKG = ((Number) updateData.get("pricePerKG")).intValue();
                 String sql = "UPDATE inventory SET priceperkg = ? WHERE productid = ?";
                 int rowsAffected = jdbcTemplate.update(sql, pricePerKG, productId);
-                
+
                 if (rowsAffected == 0) {
                     throw new RuntimeException("Product not found with ID: " + productId);
                 }
@@ -73,22 +77,39 @@ public class DatabaseService {
 
         // Insert into ORDERS table
         String orderSql = "INSERT INTO ORDERS (userID, deliveryAddress, totalPrice) VALUES (?, ?, ?) RETURNING orderID";
+
+        // Keep totalPrice as double to preserve decimal values
+        Number totalPriceObj = (Number) orderData.get("totalPrice");
+        double totalPrice = totalPriceObj.doubleValue();
+
         Long orderId = jdbcTemplate.queryForObject(orderSql, Long.class,
             userId,
             deliveryAddress,
-            ((Number) orderData.get("totalPrice")).intValue());
+            totalPrice);
 
         // Insert order items
         String itemsSql = "INSERT INTO ORDER_ITEMS (orderID, productID, quantityKG, pricePerKG) VALUES (?, ?, ?, ?)";
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> items = (List<Map<String, Object>>) orderData.get("items");
-        
+
         for (Map<String, Object> item : items) {
+            // Keep quantity as double to preserve decimal values
+            double quantityDouble = ((Number) item.get("quantity")).doubleValue();
+
+            // Convert price from double to int if needed
+            Number priceObj = (Number) item.get("pricePerKG");
+            int priceInt;
+            if (priceObj instanceof Double || priceObj instanceof Float) {
+                priceInt = (int) Math.round(priceObj.doubleValue());
+            } else {
+                priceInt = priceObj.intValue();
+            }
+
             jdbcTemplate.update(itemsSql,
                 orderId,
                 ((Number) item.get("productId")).longValue(),
-                ((Number) item.get("quantity")).intValue(),
-                ((Number) item.get("pricePerKG")).intValue());
+                quantityDouble,
+                priceInt);
         }
 
         return orderId;
@@ -97,13 +118,17 @@ public class DatabaseService {
     @Transactional
     public void updateInventoryBatch(List<Map<String, Object>> updates) {
         String sql = "UPDATE inventory SET stockkg = stockkg - ? WHERE productid = ? AND stockkg >= ?";
-        
+
         for (Map<String, Object> update : updates) {
+            // Get quantity as double to preserve decimal values
+            Number quantityObj = (Number) update.get("quantity");
+            double quantityValue = quantityObj.doubleValue();
+
             int rowsAffected = jdbcTemplate.update(sql,
-                update.get("quantity"),
+                quantityValue,
                 update.get("productId"),
-                update.get("quantity"));
-                
+                quantityValue);
+
             if (rowsAffected == 0) {
                 throw new RuntimeException("Insufficient stock for product ID: " + update.get("productId"));
             }
@@ -112,7 +137,7 @@ public class DatabaseService {
 
     public List<Map<String, Object>> getUserOrders(Long userId) {
         String sql = """
-            SELECT 
+            SELECT
                 o.orderid,
                 o.deliveryaddress,
                 o.totalprice,
@@ -130,14 +155,14 @@ public class DatabaseService {
             GROUP BY o.orderid, o.deliveryaddress, o.totalprice
             ORDER BY o.orderid DESC
         """;
-        
-        return jdbcTemplate.query(sql, 
+
+        return jdbcTemplate.query(sql,
             (rs, rowNum) -> {
                 Map<String, Object> order = new HashMap<>();
                 order.put("orderid", rs.getLong("orderid"));
                 order.put("deliveryaddress", rs.getString("deliveryaddress"));
-                order.put("totalprice", rs.getInt("totalprice"));
-                
+                order.put("totalprice", rs.getDouble("totalprice"));
+
                 // Parse the JSON string into a List
                 String itemsJson = rs.getString("items");
                 try {
@@ -147,10 +172,79 @@ public class DatabaseService {
                 } catch (Exception e) {
                     throw new RuntimeException("Error parsing order items JSON", e);
                 }
-                
+
                 return order;
             },
             userId
         );
+    }
+
+    // User management methods
+
+    public List<Map<String, Object>> getAllUsers() {
+        String sql = "SELECT userid, firstname, lastname, email, phone, type FROM users";
+        return jdbcTemplate.query(sql, new UserRowMapper());
+    }
+
+    @Transactional
+    public boolean deleteUser(Long userId) {
+        // First check if user exists
+        String checkSql = "SELECT COUNT(*) FROM users WHERE userid = ?";
+        int count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId);
+        if (count == 0) {
+            return false;
+        }
+
+        // Check if user has orders
+        String checkOrdersSql = "SELECT COUNT(*) FROM orders WHERE userid = ?";
+        int orderCount = jdbcTemplate.queryForObject(checkOrdersSql, Integer.class, userId);
+        if (orderCount > 0) {
+            // Delete associated order items first
+            String deleteOrderItemsSql = "DELETE FROM order_items WHERE orderid IN (SELECT orderid FROM orders WHERE userid = ?)";
+            jdbcTemplate.update(deleteOrderItemsSql, userId);
+
+            // Then delete orders
+            String deleteOrdersSql = "DELETE FROM orders WHERE userid = ?";
+            jdbcTemplate.update(deleteOrdersSql, userId);
+        }
+
+        // Finally delete the user
+        String deleteUserSql = "DELETE FROM users WHERE userid = ?";
+        int rowsAffected = jdbcTemplate.update(deleteUserSql, userId);
+        return rowsAffected > 0;
+    }
+
+    @Transactional
+    public boolean resetUserPassword(Long userId, String newPassword) {
+        // Check if user exists
+        String checkSql = "SELECT COUNT(*) FROM users WHERE userid = ?";
+        int count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId);
+        if (count == 0) {
+            return false;
+        }
+
+        // Hash the new password
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String hashedPassword = passwordEncoder.encode(newPassword);
+
+        // Update the password
+        String updateSql = "UPDATE users SET hashedpassword = ? WHERE userid = ?";
+        int rowsAffected = jdbcTemplate.update(updateSql, hashedPassword, userId);
+        return rowsAffected > 0;
+    }
+
+    // User row mapper
+    private static class UserRowMapper implements RowMapper<Map<String, Object>> {
+        @Override
+        public Map<String, Object> mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Map<String, Object> user = new HashMap<>();
+            user.put("id", rs.getLong("userid"));
+            user.put("firstName", rs.getString("firstname"));
+            user.put("lastName", rs.getString("lastname"));
+            user.put("email", rs.getString("email"));
+            user.put("phone", rs.getString("phone"));
+            user.put("type", rs.getInt("type"));
+            return user;
+        }
     }
 }

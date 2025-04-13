@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Add Produce - Farmers</title>
+    <title>Manage Prices - Admin</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -39,7 +39,7 @@
             color: #2c3e50;
         }
 
-        select, input {
+        input {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
@@ -65,12 +65,18 @@
             color: #27ae60;
             text-align: center;
             margin-top: 10px;
+            padding: 10px;
+            background-color: #d4edda;
+            border-radius: 4px;
         }
 
         .error-message {
             color: #e74c3c;
             text-align: center;
             margin-top: 10px;
+            padding: 10px;
+            background-color: #f8d7da;
+            border-radius: 4px;
         }
 
         .product-grid {
@@ -105,43 +111,50 @@
         .clear-button:hover {
             background-color: #c0392b;
         }
+
+        .current-price {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <nav th:replace="fragments :: navbar"></nav>
     <div class="container">
-        <h1>Add Produce to Inventory</h1>
+        <h1>Manage Product Prices</h1>
+
+        <div th:if="${success}" class="success-message" th:text="${success}">
+            Prices updated successfully!
+        </div>
+
+        <div th:if="${error}" class="error-message" th:text="${error}">
+            Error updating prices.
+        </div>
 
         <div class="form-container">
-            <form th:action="@{/farmers/add-multiple}" method="post">
+            <form th:action="@{/admin/prices/update}" method="post">
                 <div class="product-grid">
                     <div th:each="item : ${inventoryItems}" class="product-card">
                         <h3 th:text="${item.description}">Product Name</h3>
+                        <div class="current-price" th:text="'Current Price: $' + ${item.pricePerKG} + '/KG'">Current Price: $0/KG</div>
                         <div class="form-group">
-                            <label th:for="'quantity-' + ${item.productId}">Quantity (KG):</label>
+                            <label th:for="'price-' + ${item.productId}">New Price ($/KG):</label>
                             <input type="number"
-                                   th:id="'quantity-' + ${item.productId}"
-                                   th:name="'quantities[' + ${item.productId} + ']'"
+                                   th:id="'price-' + ${item.productId}"
+                                   th:name="'prices[' + ${item.productId} + ']'"
                                    min="0"
-                                   step="0.01"
-                                   value="0">
+                                   step="1"
+                                   th:value="${item.pricePerKG}">
                         </div>
                     </div>
                 </div>
 
                 <div class="button-container">
-                    <button type="submit">Add All to Inventory</button>
-                    <button type="reset" class="clear-button">Clear All</button>
+                    <button type="submit">Update Prices</button>
+                    <button type="reset" class="clear-button">Reset</button>
                 </div>
             </form>
-
-            <div th:if="${success}" class="success-message">
-                Successfully added to inventory!
-            </div>
-
-            <div th:if="${error}" class="error-message" th:text="${error}">
-                Error message here
-            </div>
         </div>
     </div>
 </body>

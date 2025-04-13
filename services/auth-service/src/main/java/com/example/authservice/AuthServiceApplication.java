@@ -1,11 +1,12 @@
-package com.example.adminservice;
+package com.example.authservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AdminServiceApplication {
+public class AuthServiceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(AdminServiceApplication.class, args);
+        System.setProperty("server.port", "8086");
+        SpringApplication.run(AuthServiceApplication.class, args);
     }
 }

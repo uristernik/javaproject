@@ -17,14 +17,14 @@ CREATE TABLE IF NOT EXISTS ORDERS (
     orderID SERIAL PRIMARY KEY,
     userID INTEGER REFERENCES USERS(userID),
     deliveryAddress TEXT,
-    totalPrice INTEGER
+    totalPrice DECIMAL(10,2)
 );
 
 -- Create INVENTORY table
 CREATE TABLE IF NOT EXISTS INVENTORY (
     productID SERIAL PRIMARY KEY,
     description TEXT,
-    stockKG INTEGER,
+    stockKG DECIMAL(10,2),
     pricePerKG INTEGER
 );
 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS ORDER_ITEMS (
     serialID SERIAL PRIMARY KEY,
     orderID INTEGER NOT NULL REFERENCES ORDERS(orderID),
     productID INTEGER NOT NULL REFERENCES INVENTORY(productID),
-    quantityKG INTEGER,
+    quantityKG DECIMAL(10,2),
     pricePerKG INTEGER
 );
 
@@ -44,10 +44,13 @@ CREATE TABLE IF NOT EXISTS REVIEWS (
     sumOfReviews INTEGER
 );
 
--- Insert default user
-INSERT INTO USERS (userID, firstName, lastName, email, phone, hashedPassword, type) 
-VALUES (1, 'Default', 'User', 'default@example.com', '1234567890', 'defaulthash', 1)
+-- Insert default user with ID 1000 to avoid conflicts with auto-increment
+INSERT INTO USERS (userID, firstName, lastName, email, phone, hashedPassword, type)
+VALUES (1000, 'Admin', 'User', 'admin@example.com', '1234567890', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 2)
 ON CONFLICT (userID) DO NOTHING;
+
+-- Reset the sequence to start after our manually inserted user
+SELECT setval('users_userid_seq', 1000, true);
 
 -- Make sure your INSERT statements are correct and being executed
 INSERT INTO INVENTORY (description, stockKG, pricePerKG) VALUES

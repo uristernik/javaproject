@@ -37,33 +37,19 @@ class InventoryController {
 
     @PostMapping("/farmers/add-multiple")
     public String addMultipleProduce(@RequestParam Map<String, String> quantities,
-                                    RedirectAttributes redirectAttributes) {
+                                    Model model) {
         try {
             inventoryService.addMultipleProduce(quantities);
-            redirectAttributes.addFlashAttribute("success", true);
-            return "redirect:/farmers";
+            model.addAttribute("success", true);
+            // Instead of redirecting, render the farmers page directly
+            model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
+            return "farmers";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Failed to add produce: " + e.getMessage());
-            return "redirect:/farmers";
+            model.addAttribute("error", "Failed to add produce: " + e.getMessage());
+            model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
+            return "farmers";
         }
     }
 
-    @GetMapping("/admin/prices")
-    public String managePrices(Model model) {
-        model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
-        return "manage-prices";
-    }
-
-    @PostMapping("/admin/prices/update")
-    public String updatePrices(@RequestParam Map<String, String> prices,
-                             RedirectAttributes redirectAttributes) {
-        try {
-            inventoryService.updatePrices(prices);
-            redirectAttributes.addFlashAttribute("success", "Prices updated successfully!");
-            return "redirect:/admin/prices";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Failed to update prices: " + e.getMessage());
-            return "redirect:/admin/prices";
-        }
-    }
+    // Price management has been moved to the admin service
 }

@@ -4,9 +4,9 @@
     <title>Your Orders</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background-color: #f5f5f5;
         }
         .container {
@@ -64,14 +64,17 @@
     </style>
 </head>
 <body>
+    <!-- Include the navigation bar -->
+    <div th:replace="fragments :: navbar"></div>
+
     <div class="container">
         <a href="/catalog" class="back-button">Back to Catalog</a>
-        <h1>Your Orders</h1>
-        
+        <h1>Orders for <span th:text="${userInfo.firstName + ' ' + userInfo.lastName}">User</span></h1>
+
         <div th:if="${orders.empty}">
             <p>You haven't placed any orders yet.</p>
         </div>
-        
+
         <div th:each="order : ${orders}" class="order-card">
             <div class="order-header">
                 <div>
@@ -81,7 +84,7 @@
                     <strong>Delivery Address:</strong> <span th:text="${order.deliveryaddress}">123 Street</span>
                 </div>
             </div>
-            
+
             <div class="order-items">
                 <div th:each="item : ${order.items}" class="order-item">
                     <div>
@@ -89,13 +92,13 @@
                         (<span th:text="${item.quantitykg}">1</span>KG × $<span th:text="${item.pricepkg}">10</span>/KG)
                     </div>
                     <div>
-                        $<span th:text="${item.quantitykg * item.pricepkg}">10.00</span>
+                        $<span th:text="${#numbers.formatDecimal(item.quantitykg * item.pricepkg, 1, 2)}">10.00</span>
                     </div>
                 </div>
             </div>
-            
+
             <div class="total">
-                Total: $<span th:text="${order.totalprice}">100.00</span>
+                Total: $<span th:text="${#numbers.formatDecimal(order.totalprice, 1, 2)}">100.00</span>
             </div>
         </div>
     </div>
