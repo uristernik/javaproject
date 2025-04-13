@@ -12,6 +12,7 @@ services:
       - user-management-service
       - order-management-service
       - data-access-service
+      - auth-service
 
   admin-service:
     build: ./services/admin-service
@@ -57,6 +58,18 @@ services:
     build: ./services/data-access-service
     ports:
       - "8085:8085"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/mydb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "8086:8086"
     depends_on:
       database:
         condition: service_healthy
