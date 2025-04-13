@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -14,20 +17,74 @@ import java.util.HashMap;
 
 @Controller
 public class ProductCatalogController {
-    private final WebClient webClient;
+    private final WebClient dataAccessClient;
+    private final WebClient authClient;
 
     public ProductCatalogController() {
-        this.webClient = WebClient.create("http://data-access-service:8085");
+        this.dataAccessClient = WebClient.create("http://data-access-service:8085");
+        this.authClient = WebClient.create("http://nginx:80");
+    }
+
+    @GetMapping("/")
+    public String showRoot(
+            @CookieValue(name = "JSESSIONID", required = false) String sessionId,
+            Model model) {
+
+        if (sessionId == null || sessionId.isEmpty()) {
+            return "redirect:/login";
+        }
+
+        // Get the current user info from the auth service
+        Map<String, Object> userInfo;
+        try {
+            userInfo = authClient.get()
+                    .uri("/auth/user")
+                    .cookie("JSESSIONID", sessionId)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+        } catch (Exception e) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("userInfo", userInfo);
+        return "home";
+    }
+
+    @GetMapping("/home")
+    public String showHome(
+            @CookieValue(name = "JSESSIONID", required = false) String sessionId,
+            Model model) {
+
+        if (sessionId == null || sessionId.isEmpty()) {
+            return "redirect:/login";
+        }
+
+        // Get the current user info from the auth service
+        Map<String, Object> userInfo;
+        try {
+            userInfo = authClient.get()
+                    .uri("/auth/user")
+                    .cookie("JSESSIONID", sessionId)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+        } catch (Exception e) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("userInfo", userInfo);
+        return "home";
     }
 
     @GetMapping("/catalog")
     public String showCatalog(Model model) {
-        List<Map<String, Object>> products = webClient.get()
+        List<Map<String, Object>> products = dataAccessClient.get()
                 .uri("/api/data/tables/inventory")
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
                 .block();
-        
+
         model.addAttribute("products", products);
         return "catalog";
     }
@@ -38,9 +95,9 @@ public class ProductCatalogController {
         try {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> items = (List<Map<String, Object>>) checkoutData.get("items");
-            
+
             // First, update inventory
-            webClient.post()
+            dataAccessClient.post()
                 .uri("/api/data/inventory/update-batch")
                 .bodyValue(items)
                 .retrieve()
@@ -54,7 +111,7 @@ public class ProductCatalogController {
             orderData.put("totalPrice", checkoutData.get("totalPrice"));
             orderData.put("items", items);
 
-            Map<String, Object> result = webClient.post()
+            Map<String, Object> result = dataAccessClient.post()
                 .uri("/api/data/orders/create")
                 .bodyValue(orderData)
                 .retrieve()

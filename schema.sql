@@ -17,14 +17,14 @@ CREATE TABLE IF NOT EXISTS ORDERS (
     orderID SERIAL PRIMARY KEY,
     userID INTEGER REFERENCES USERS(userID),
     deliveryAddress TEXT,
-    totalPrice INTEGER
+    totalPrice DECIMAL(10,2)
 );
 
 -- Create INVENTORY table
 CREATE TABLE IF NOT EXISTS INVENTORY (
     productID SERIAL PRIMARY KEY,
     description TEXT,
-    stockKG INTEGER,
+    stockKG DECIMAL(10,2),
     pricePerKG INTEGER
 );
 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS ORDER_ITEMS (
     serialID SERIAL PRIMARY KEY,
     orderID INTEGER NOT NULL REFERENCES ORDERS(orderID),
     productID INTEGER NOT NULL REFERENCES INVENTORY(productID),
-    quantityKG INTEGER,
+    quantityKG DECIMAL(10,2),
     pricePerKG INTEGER
 );
 

@@ -36,7 +36,7 @@ public class DatabaseService {
             Long productId = ((Number) updateData.get("productId")).longValue();
 
             if (updateData.containsKey("stockKG")) {
-                Integer stockKG = ((Number) updateData.get("stockKG")).intValue();
+                Double stockKG = ((Number) updateData.get("stockKG")).doubleValue();
                 String sql = "UPDATE inventory SET stockkg = ? WHERE productid = ?";
                 int rowsAffected = jdbcTemplate.update(sql, stockKG, productId);
 
@@ -78,19 +78,14 @@ public class DatabaseService {
         // Insert into ORDERS table
         String orderSql = "INSERT INTO ORDERS (userID, deliveryAddress, totalPrice) VALUES (?, ?, ?) RETURNING orderID";
 
-        // Convert totalPrice from double to int if needed
+        // Keep totalPrice as double to preserve decimal values
         Number totalPriceObj = (Number) orderData.get("totalPrice");
-        int totalPriceInt;
-        if (totalPriceObj instanceof Double || totalPriceObj instanceof Float) {
-            totalPriceInt = (int) Math.round(totalPriceObj.doubleValue());
-        } else {
-            totalPriceInt = totalPriceObj.intValue();
-        }
+        double totalPrice = totalPriceObj.doubleValue();
 
         Long orderId = jdbcTemplate.queryForObject(orderSql, Long.class,
             userId,
             deliveryAddress,
-            totalPriceInt);
+            totalPrice);
 
         // Insert order items
         String itemsSql = "INSERT INTO ORDER_ITEMS (orderID, productID, quantityKG, pricePerKG) VALUES (?, ?, ?, ?)";
@@ -98,9 +93,8 @@ public class DatabaseService {
         List<Map<String, Object>> items = (List<Map<String, Object>>) orderData.get("items");
 
         for (Map<String, Object> item : items) {
-            // Convert quantity from double to int (round to nearest integer)
+            // Keep quantity as double to preserve decimal values
             double quantityDouble = ((Number) item.get("quantity")).doubleValue();
-            int quantityInt = (int) Math.round(quantityDouble);
 
             // Convert price from double to int if needed
             Number priceObj = (Number) item.get("pricePerKG");
@@ -114,7 +108,7 @@ public class DatabaseService {
             jdbcTemplate.update(itemsSql,
                 orderId,
                 ((Number) item.get("productId")).longValue(),
-                quantityInt,
+                quantityDouble,
                 priceInt);
         }
 
@@ -126,19 +120,14 @@ public class DatabaseService {
         String sql = "UPDATE inventory SET stockkg = stockkg - ? WHERE productid = ? AND stockkg >= ?";
 
         for (Map<String, Object> update : updates) {
-            // Convert quantity from double to int if needed
+            // Get quantity as double to preserve decimal values
             Number quantityObj = (Number) update.get("quantity");
-            int quantityInt;
-            if (quantityObj instanceof Double || quantityObj instanceof Float) {
-                quantityInt = (int) Math.round(quantityObj.doubleValue());
-            } else {
-                quantityInt = quantityObj.intValue();
-            }
+            double quantityValue = quantityObj.doubleValue();
 
             int rowsAffected = jdbcTemplate.update(sql,
-                quantityInt,
+                quantityValue,
                 update.get("productId"),
-                quantityInt);
+                quantityValue);
 
             if (rowsAffected == 0) {
                 throw new RuntimeException("Insufficient stock for product ID: " + update.get("productId"));
@@ -172,7 +161,7 @@ public class DatabaseService {
                 Map<String, Object> order = new HashMap<>();
                 order.put("orderid", rs.getLong("orderid"));
                 order.put("deliveryaddress", rs.getString("deliveryaddress"));
-                order.put("totalprice", rs.getInt("totalprice"));
+                order.put("totalprice", rs.getDouble("totalprice"));
 
                 // Parse the JSON string into a List
                 String itemsJson = rs.getString("items");

@@ -92,13 +92,13 @@
                         (<span th:text="${item.quantitykg}">1</span>KG × $<span th:text="${item.pricepkg}">10</span>/KG)
                     </div>
                     <div>
-                        $<span th:text="${item.quantitykg * item.pricepkg}">10.00</span>
+                        $<span th:text="${#numbers.formatDecimal(item.quantitykg * item.pricepkg, 1, 2)}">10.00</span>
                     </div>
                 </div>
             </div>
 
             <div class="total">
-                Total: $<span th:text="${order.totalprice}">100.00</span>
+                Total: $<span th:text="${#numbers.formatDecimal(order.totalprice, 1, 2)}">100.00</span>
             </div>
         </div>
     </div>

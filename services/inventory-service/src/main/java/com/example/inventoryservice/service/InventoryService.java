@@ -26,7 +26,7 @@ public class InventoryService {
                 .collect(Collectors.toList());
     }
 
-    public void addProduce(Long productId, Integer quantityToAdd) {
+    public void addProduce(Long productId, Double quantityToAdd) {
         // Get current stock
         InventoryItem currentItem = getInventoryItems().stream()
                 .filter(item -> item.getProductId().equals(productId))
@@ -34,8 +34,8 @@ public class InventoryService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         // Calculate new stock
-        int newStock = currentItem.getStockKG() + quantityToAdd;
-        
+        double newStock = currentItem.getStockKG() + quantityToAdd;
+
         // Update stock through data-access-service
         webClient.post()
                 .uri("/api/data/tables/inventory/update")
@@ -52,21 +52,21 @@ public class InventoryService {
         InventoryItem item = new InventoryItem();
         item.setProductId(((Number) map.get("productid")).longValue());
         item.setDescription((String) map.get("description"));
-        item.setStockKG(((Number) map.get("stockkg")).intValue());
+        item.setStockKG(((Number) map.get("stockkg")).doubleValue());
         item.setPricePerKG(((Number) map.get("priceperkg")).intValue());
         return item;
     }
 
     public void addMultipleProduce(Map<String, String> quantities) {
         // Filter out empty or zero quantities
-        Map<Long, Integer> validQuantities = quantities.entrySet().stream()
-            .filter(entry -> entry.getKey().startsWith("quantities[") && 
+        Map<Long, Double> validQuantities = quantities.entrySet().stream()
+            .filter(entry -> entry.getKey().startsWith("quantities[") &&
                            entry.getKey().endsWith("]"))
             .map(entry -> {
                 Long productId = Long.parseLong(entry.getKey()
                     .replace("quantities[", "")
                     .replace("]", ""));
-                Integer quantity = Integer.parseInt(entry.getValue());
+                Double quantity = Double.parseDouble(entry.getValue());
                 return new AbstractMap.SimpleEntry<>(productId, quantity);
             })
             .filter(entry -> entry.getValue() > 0)
@@ -81,17 +81,17 @@ public class InventoryService {
             .collect(Collectors.toMap(InventoryItem::getProductId, item -> item));
 
         // Update each product
-        for (Map.Entry<Long, Integer> entry : validQuantities.entrySet()) {
+        for (Map.Entry<Long, Double> entry : validQuantities.entrySet()) {
             Long productId = entry.getKey();
-            Integer quantityToAdd = entry.getValue();
-            
+            Double quantityToAdd = entry.getValue();
+
             InventoryItem currentItem = currentItems.get(productId);
             if (currentItem == null) {
                 throw new RuntimeException("Product not found with ID: " + productId);
             }
 
             // Calculate new stock
-            int newStock = currentItem.getStockKG() + quantityToAdd;
+            double newStock = currentItem.getStockKG() + quantityToAdd;
 
             // Update through data-access-service
             webClient.post()
@@ -108,7 +108,7 @@ public class InventoryService {
 
     public void updatePrices(Map<String, String> prices) {
         Map<Long, Integer> validPrices = prices.entrySet().stream()
-            .filter(entry -> entry.getKey().startsWith("prices[") && 
+            .filter(entry -> entry.getKey().startsWith("prices[") &&
                            entry.getKey().endsWith("]"))
             .map(entry -> {
                 Long productId = Long.parseLong(entry.getKey()
