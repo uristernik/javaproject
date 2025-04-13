@@ -44,10 +44,13 @@ CREATE TABLE IF NOT EXISTS REVIEWS (
     sumOfReviews INTEGER
 );
 
--- Insert default user
-INSERT INTO USERS (userID, firstName, lastName, email, phone, hashedPassword, type) 
-VALUES (1, 'Default', 'User', 'default@example.com', '1234567890', 'defaulthash', 1)
+-- Insert default user with ID 1000 to avoid conflicts with auto-increment
+INSERT INTO USERS (userID, firstName, lastName, email, phone, hashedPassword, type)
+VALUES (1000, 'Admin', 'User', 'admin@example.com', '1234567890', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 2)
 ON CONFLICT (userID) DO NOTHING;
+
+-- Reset the sequence to start after our manually inserted user
+SELECT setval('users_userid_seq', 1000, true);
 
 -- Make sure your INSERT statements are correct and being executed
 INSERT INTO INVENTORY (description, stockKG, pricePerKG) VALUES
