@@ -51,25 +51,5 @@ class InventoryController {
         }
     }
 
-    @GetMapping("/admin/prices")
-    public String managePrices(Model model) {
-        model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
-        return "manage-prices";
-    }
-
-    @PostMapping("/admin/prices/update")
-    public String updatePrices(@RequestParam Map<String, String> prices,
-                             Model model) {
-        try {
-            inventoryService.updatePrices(prices);
-            model.addAttribute("success", "Prices updated successfully!");
-            // Instead of redirecting, render the page directly
-            model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
-            return "manage-prices";
-        } catch (Exception e) {
-            model.addAttribute("error", "Failed to update prices: " + e.getMessage());
-            model.addAttribute("inventoryItems", inventoryService.getInventoryItems());
-            return "manage-prices";
-        }
-    }
+    // Price management has been moved to the admin service
 }
