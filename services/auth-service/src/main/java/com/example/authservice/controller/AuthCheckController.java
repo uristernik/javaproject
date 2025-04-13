@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthCheckController {
@@ -23,12 +25,27 @@ public class AuthCheckController {
     private UserRepository userRepository;
 
     @GetMapping("/check")
-    public ResponseEntity<Void> checkAuth() {
+    public ResponseEntity<Void> checkAuth(HttpServletRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         // Check if user is authenticated and not anonymous
         if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-            return ResponseEntity.ok().build(); // Return 200 OK if authenticated
+            // Get the original URI from the request headers
+            String originalUri = request.getHeader("X-Original-URI");
+
+            // If the request is for an admin route, check if the user is an admin
+            if (originalUri != null && originalUri.startsWith("/admin/")) {
+                String email = auth.getName();
+                Optional<User> userOpt = userRepository.findByEmail(email);
+
+                if (userOpt.isPresent() && userOpt.get().getType() != null && userOpt.get().getType() == 2) {
+                    return ResponseEntity.ok().build(); // Return 200 OK if user is admin
+                } else {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Return 403 if user is not admin
+                }
+            }
+
+            return ResponseEntity.ok().build(); // Return 200 OK if authenticated for non-admin routes
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Return 401 if not authenticated
         }

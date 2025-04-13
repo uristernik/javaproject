@@ -54,6 +54,7 @@ public class ProductCatalogController {
     @GetMapping("/home")
     public String showHome(
             @CookieValue(name = "JSESSIONID", required = false) String sessionId,
+            @RequestParam(name = "error", required = false) String error,
             Model model) {
 
         if (sessionId == null || sessionId.isEmpty()) {
@@ -74,6 +75,12 @@ public class ProductCatalogController {
         }
 
         model.addAttribute("userInfo", userInfo);
+
+        // Add error message if access was denied
+        if (error != null && error.equals("access_denied")) {
+            model.addAttribute("errorMessage", "Access denied. You do not have permission to access the requested page.");
+        }
+
         return "home";
     }
 
