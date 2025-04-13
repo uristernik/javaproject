@@ -9,7 +9,6 @@ services:
       - admin-service
       - inventory-service
       - product-catalog-service
-      - user-management-service
       - order-management-service
       - data-access-service
       - auth-service
@@ -34,18 +33,6 @@ services:
       - "8082:8082"
     depends_on:
       - database
-
-  user-management-service:
-    build: ./services/user-management-service
-    ports:
-      - "8083:8083"
-    depends_on:
-      database:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/mydb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
 
   order-management-service:
     build: ./services/order-management-service
