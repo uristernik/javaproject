@@ -134,26 +134,59 @@
             border-radius: var(--border-radius);
             background-color: #fff;
         }
+
+        .global-order-id {
+            font-size: 0.85rem;
+            color: #777;
+            margin-left: 8px;
+            font-style: italic;
+        }
+
+        /* Admin view specific styles */
+        .admin-view .order-card {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .admin-filter {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .admin-filter select {
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            background-color: white;
+            font-family: inherit;
+            margin-left: var(--spacing-md);
+        }
     </style>
 </head>
 
 <body>
     <div th:replace="fragments :: navbar"></div>
 
-    <div class="container">
+    <div th:class="${userInfo.type == 2 ? 'container admin-view' : 'container'}">
         <a href="/catalog" class="back-button">
             <i class="fas fa-arrow-left"></i> Back to Catalog
         </a>
-        <h1>Your Orders, <span th:text="${userInfo.firstName + ' ' + userInfo.lastName}">User</span></h1>
+        <h1 th:if="${userInfo.type != 2}">Your Orders, <span th:text="${userInfo.firstName + ' ' + userInfo.lastName}">User</span></h1>
+        <h1 th:if="${userInfo.type == 2}">All Orders (Admin View)</h1>
 
-        <div th:if="${orders.empty}">
-            <p class="empty-orders">You haven't placed any orders yet.</p>
+        <div th:if="${orders == null || orders.empty}">
+            <p class="empty-orders" th:if="${userInfo.type != 2}">You haven't placed any orders yet.</p>
+            <p class="empty-orders" th:if="${userInfo.type == 2}">There are no orders in the system yet.</p>
         </div>
 
         <div th:each="order : ${orders}" class="order-card">
             <div class="order-header">
                 <div>
-                    <strong>Order #</strong> <span th:text="${order.orderid}">123</span>
+                    <strong>Order #</strong> <span th:text="${order.userorderid}">123</span>
+                    <span class="global-order-id" th:if="${userInfo.type == 2}">(Global ID: <span th:text="${order.orderid}">456</span>)</span>
+                </div>
+                <div th:if="${userInfo.type == 2}">
+                    <strong>Customer:</strong> <span th:text="${order.username}">John Doe</span>
                 </div>
                 <div>
                     <strong>Delivery Address:</strong> <span th:text="${order.deliveryaddress}">123 Street</span>

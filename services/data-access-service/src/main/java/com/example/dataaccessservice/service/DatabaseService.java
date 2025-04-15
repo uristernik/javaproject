@@ -75,8 +75,12 @@ public class DatabaseService {
             throw new IllegalArgumentException("deliveryAddress is required");
         }
 
+        // Calculate the next userOrderId for this user
+        String userOrderIdSql = "SELECT COALESCE(MAX(userOrderId), 0) + 1 FROM ORDERS WHERE userId = ?";
+        Integer userOrderId = jdbcTemplate.queryForObject(userOrderIdSql, Integer.class, userId);
+
         // Insert into ORDERS table
-        String orderSql = "INSERT INTO ORDERS (userID, deliveryAddress, totalPrice) VALUES (?, ?, ?) RETURNING orderID";
+        String orderSql = "INSERT INTO ORDERS (userID, userOrderId, deliveryAddress, totalPrice) VALUES (?, ?, ?, ?) RETURNING orderID";
 
         // Keep totalPrice as double to preserve decimal values
         Number totalPriceObj = (Number) orderData.get("totalPrice");
@@ -84,6 +88,7 @@ public class DatabaseService {
 
         Long orderId = jdbcTemplate.queryForObject(orderSql, Long.class,
             userId,
+            userOrderId,
             deliveryAddress,
             totalPrice);
 
@@ -139,6 +144,7 @@ public class DatabaseService {
         String sql = """
             SELECT
                 o.orderid,
+                o.userorderid,
                 o.deliveryaddress,
                 o.totalprice,
                 json_agg(
@@ -152,7 +158,7 @@ public class DatabaseService {
             JOIN order_items oi ON o.orderid = oi.orderid
             JOIN inventory i ON oi.productid = i.productid
             WHERE o.userid = ?
-            GROUP BY o.orderid, o.deliveryaddress, o.totalprice
+            GROUP BY o.orderid, o.userorderid, o.deliveryaddress, o.totalprice
             ORDER BY o.orderid DESC
         """;
 
@@ -160,6 +166,7 @@ public class DatabaseService {
             (rs, rowNum) -> {
                 Map<String, Object> order = new HashMap<>();
                 order.put("orderid", rs.getLong("orderid"));
+                order.put("userorderid", rs.getInt("userorderid"));
                 order.put("deliveryaddress", rs.getString("deliveryaddress"));
                 order.put("totalprice", rs.getDouble("totalprice"));
 
@@ -176,6 +183,57 @@ public class DatabaseService {
                 return order;
             },
             userId
+        );
+    }
+
+    // Method to get all orders (for admin)
+    public List<Map<String, Object>> getAllOrders() {
+        String sql = """
+            SELECT
+                o.orderid,
+                o.userorderid,
+                o.userid,
+                u.firstname,
+                u.lastname,
+                o.deliveryaddress,
+                o.totalprice,
+                json_agg(
+                    json_build_object(
+                        'description', i.description,
+                        'quantitykg', oi.quantitykg,
+                        'pricepkg', oi.priceperkg
+                    )
+                ) as items
+            FROM orders o
+            JOIN users u ON o.userid = u.userid
+            JOIN order_items oi ON o.orderid = oi.orderid
+            JOIN inventory i ON oi.productid = i.productid
+            GROUP BY o.orderid, o.userorderid, o.userid, u.firstname, u.lastname, o.deliveryaddress, o.totalprice
+            ORDER BY o.orderid DESC
+        """;
+
+        return jdbcTemplate.query(sql,
+            (rs, rowNum) -> {
+                Map<String, Object> order = new HashMap<>();
+                order.put("orderid", rs.getLong("orderid"));
+                order.put("userorderid", rs.getInt("userorderid"));
+                order.put("userid", rs.getLong("userid"));
+                order.put("username", rs.getString("firstname") + " " + rs.getString("lastname"));
+                order.put("deliveryaddress", rs.getString("deliveryaddress"));
+                order.put("totalprice", rs.getDouble("totalprice"));
+
+                // Parse the JSON string into a List
+                String itemsJson = rs.getString("items");
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    List<?> items = mapper.readValue(itemsJson, List.class);
+                    order.put("items", items);
+                } catch (Exception e) {
+                    throw new RuntimeException("Error parsing order items JSON", e);
+                }
+
+                return order;
+            }
         );
     }
 

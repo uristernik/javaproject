@@ -50,6 +50,11 @@ public class DataAccessController {
         return ResponseEntity.ok(databaseService.getUserOrders(userId));
     }
 
+    @GetMapping("/orders/all")
+    public ResponseEntity<List<Map<String, Object>>> getAllOrders() {
+        return ResponseEntity.ok(databaseService.getAllOrders());
+    }
+
     // User management endpoints
 
     @GetMapping("/users")
