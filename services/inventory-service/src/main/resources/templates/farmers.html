@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+ <html xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <title>Add Produce - New Roots</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/modern-styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
+ <head>
+     <title>Add Produce - New Roots</title>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link
+         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+         rel="stylesheet">
+     <link rel="stylesheet" href="/static/css/modern-styles.css">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+     <style>
         :root {
             --primary-color: #4CAF50;
             --primary-dark: #388E3C;
@@ -20,13 +20,13 @@
             --dark-color: #333;
             --text-color: #555;
             --border-color: #ddd;
-            --spacing-sm: 10px;
-            --spacing-md: 15px;
-            --spacing-lg: 20px;
-            --spacing-xl: 30px;
+            --spacing-sm: 8px; /* Slightly smaller spacing */
+            --spacing-md: 12px; /* Slightly smaller spacing */
+            --spacing-lg: 16px; /* Slightly smaller spacing */
+            --spacing-xl: 24px; /* Slightly smaller spacing */
             --transition-fast: 0.2s ease-in-out;
-            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* More subtle shadow */
+            --border-radius: 6px; /* Slightly less rounded */
         }
 
         body {
@@ -47,7 +47,7 @@
             color: var(--primary-color);
             text-align: center;
             margin-bottom: var(--spacing-xl);
-            font-size: 2.2rem;
+            font-size: 2rem; /* Slightly smaller heading */
         }
 
         .form-container {
@@ -66,7 +66,7 @@
             margin-bottom: var(--spacing-sm);
             color: var(--dark-color);
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.9rem; /* Slightly smaller label */
         }
 
         .form-group select,
@@ -76,7 +76,7 @@
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             box-sizing: border-box;
-            font-size: 1rem;
+            font-size: 0.95rem; /* Slightly smaller input text */
             color: var(--text-color);
             transition: border-color var(--transition-fast);
         }
@@ -96,7 +96,7 @@
             border-radius: var(--border-radius);
             cursor: pointer;
             width: 100%;
-            font-size: 1.1rem;
+            font-size: 1rem; /* Slightly smaller button text */
             transition: background-color var(--transition-fast);
         }
 
@@ -110,6 +110,7 @@
             border-radius: var(--border-radius);
             display: flex;
             align-items: center;
+            font-size: 0.9rem; /* Slightly smaller alert text */
         }
 
         .alert-success {
@@ -126,46 +127,69 @@
 
         .alert i {
             margin-right: var(--spacing-sm);
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: var(--spacing-lg);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Smaller minimum width */
+            gap: var(--spacing-md); /* Smaller gap */
             margin-bottom: var(--spacing-lg);
         }
 
         .product-card {
             background-color: #fff;
-            padding: var(--spacing-lg);
+            padding: var(--spacing-md); /* Smaller padding */
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            text-align: center;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px); /* Less pronounced hover effect */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* More subtle hover shadow */
+        }
+
+        .product-image {
+            margin-bottom: var(--spacing-sm); /* Smaller margin */
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            height: 100px; /* Smaller image height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--light-color);
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform var(--transition-fast);
+        }
+
+        .product-image img:hover {
+            transform: scale(1.03); /* Less pronounced hover scale */
         }
 
         .product-card h3 {
-            margin-top: 0;
+            margin-top: var(--spacing-sm); /* Smaller margin */
             color: var(--primary-color);
-            font-size: 1.4rem;
-            margin-bottom: var(--spacing-md);
+            font-size: 1.1rem; /* Smaller font size */
+            margin-bottom: var(--spacing-xs); /* Even smaller margin */
         }
 
         .button-container {
             display: flex;
             justify-content: center;
-            gap: var(--spacing-lg);
+            gap: var(--spacing-md); /* Smaller gap */
             margin-top: var(--spacing-lg);
         }
 
         .button-container button {
-            padding: var(--spacing-md) var(--spacing-xl);
-            font-size: 1.1rem;
+            padding: var(--spacing-md) var(--spacing-lg); /* Smaller padding */
+            font-size: 1rem; /* Smaller font size */
             font-weight: 500;
             cursor: pointer;
             border: none;
@@ -185,43 +209,92 @@
         .clear-button:hover {
             background-color: #c0392b;
         }
+
+        .form-control {
+            width: calc(100% - 20px);
+            padding: var(--spacing-sm); /* Smaller padding */
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            font-size: 0.9rem; /* Smaller font size */
+            color: var(--text-color);
+            transition: border-color var(--transition-fast);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
     </style>
-</head>
+ </head>
 
-<body>
-    <nav th:replace="fragments :: navbar"></nav>
-    <div class="container">
-        <h1>Add Produce to Inventory</h1>
+ <body>
+     <nav th:replace="fragments :: navbar"></nav>
+     <div class="container">
+         <h1>Add Produce to Inventory</h1>
 
-        <div class="form-container">
-            <form th:action="@{/farmers/add-multiple}" method="post">
-                <div class="product-grid">
-                    <div th:each="item : ${inventoryItems}" class="product-card">
-                        <h3 th:text="${item.description}">Product Name</h3>
-                        <div class="form-group">
-                            <label th:for="'quantity-' + ${item.productId}">Quantity (KG):</label>
-                            <input type="number" th:id="'quantity-' + ${item.productId}"
-                                th:name="'quantities[' + ${item.productId} + ']'" min="0" step="0.01" value="0"
-                                class="form-control">
-                        </div>
-                    </div>
-                </div>
+         <div class="form-container">
+             <form th:action="@{/farmers/add-multiple}" method="post">
+                 <div class="product-grid">
+                     <div th:each="item : ${inventoryItems}" class="product-card">
+                         <div class="product-image">
+                             <img th:if="${item.description == 'Organic Apples'}"
+                                 src="https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="apples.jpg">
+                             <img th:if="${item.description == 'Fresh Bananas'}"
+                                 src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="bananas.jpg">
+                             <img th:if="${item.description == 'Carrots'}"
+                                 src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="carrots.jpg">
+                             <img th:if="${item.description == 'Tomatoes'}"
+                                 src="https://images.unsplash.com/photo-1582284540020-8acbe03f4924?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="tomatoes.jpg">
+                             <img th:if="${item.description == 'Potatoes'}"
+                                 src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="potatoes.jpg">
+                             <img th:if="${item.description == 'Oranges'}"
+                                 src="https://images.unsplash.com/photo-1582979512210-99b6a53386f9?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="oranges.jpg">
+                             <img th:if="${item.description == 'Broccoli'}"
+                                 src="https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="broccoli.jpg">
+                             <img th:if="${item.description == 'Spinach'}"
+                                 src="https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="spinach.jpg">
+                             <img th:if="${item.description == 'Sweet Potatoes'}"
+                                 src="https://www.publicdomainpictures.net/pictures/310000/velka/sweet-potato-crop.jpg"
+                                 th:alt="${item.description}" th:data-img="sweet_potatoes.jpg">
+                             <img th:if="${item.description == 'Bell Peppers'}"
+                                 src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=300&h=200&fit=crop"
+                                 th:alt="${item.description}" th:data-img="bell_peppers.jpg">
+                         </div>
+                         <h3 th:text="${item.description}">Product Name</h3>
+                         <div class="form-group">
+                             <label th:for="'quantity-' + ${item.productId}">Quantity (KG):</label>
+                             <input type="number" th:id="'quantity-' + ${item.productId}"
+                                 th:name="'quantities[' + ${item.productId} + ']'" min="0" step="0.01" value="0"
+                                 class="form-control">
+                         </div>
+                     </div>
+                 </div>
 
-                <div class="button-container">
-                    <button type="submit" class="form-submit">Add All to Inventory</button>
-                    <button type="reset" class="clear-button">Clear All</button>
-                </div>
-            </form>
+                 <div class="button-container">
+                     <button type="submit" class="form-submit">Add All to Inventory</button>
+                     <button type="reset" class="clear-button">Clear All</button>
+                 </div>
+             </form>
 
-            <div th:if="${success}" class="alert alert-success">
-                <i class="fas fa-check-circle"></i> Successfully added to inventory!
-            </div>
+             <div th:if="${success}" class="alert alert-success">
+                 <i class="fas fa-check-circle"></i> Successfully added to inventory!
+             </div>
 
-            <div th:if="${error}" class="alert alert-danger" th:text="${error}">
-                <i class="fas fa-exclamation-circle"></i> Error: <span th:text="${error}"></span>
-            </div>
-        </div>
-    </div>
-</body>
+             <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                 <i class="fas fa-exclamation-circle"></i> Error: <span th:text="${error}"></span>
+             </div>
+         </div>
+     </div>
+ </body>
 
-</html>
+ </html>
