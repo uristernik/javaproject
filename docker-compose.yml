@@ -15,36 +15,36 @@ services:
 
   admin-service:
     build: ./services/admin-service
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     depends_on:
       - database
 
   inventory-service:
     build: ./services/inventory-service
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
     depends_on:
       - database
 
   product-catalog-service:
     build: ./services/product-catalog-service
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
     depends_on:
       - database
 
   order-management-service:
     build: ./services/order-management-service
-    ports:
-      - "8084:8084"
+    expose:
+      - "8084"
     depends_on:
       - database
 
   data-access-service:
     build: ./services/data-access-service
-    ports:
-      - "8085:8085"
+    expose:
+      - "8085"
     depends_on:
       database:
         condition: service_healthy
@@ -55,15 +55,10 @@ services:
 
   auth-service:
     build: ./services/auth-service
-    ports:
-      - "8086:8086"
+    expose:
+      - "8086"
     depends_on:
-      database:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/mydb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
+      - data-access-service
 
   database:
     image: postgres:alpine
@@ -71,8 +66,8 @@ services:
       POSTGRES_DB: mydb
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql # Mount the SQL file

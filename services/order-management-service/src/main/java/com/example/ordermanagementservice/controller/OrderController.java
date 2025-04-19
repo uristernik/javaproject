@@ -22,6 +22,11 @@ public class OrderController {
         this.authClient = WebClient.create("http://nginx:80");
     }
 
+    @GetMapping("/")
+    public String redirectToOrders() {
+        return "redirect:/orders";
+    }
+
     @GetMapping("/orders")
     public String showOrders(
             @CookieValue(name = "JSESSIONID", required = false) String sessionId,
@@ -49,13 +54,26 @@ public class OrderController {
         }
 
         Long userId = ((Number) userInfo.get("id")).longValue();
+        Integer userType = ((Number) userInfo.get("type")).intValue();
+        boolean isAdmin = userType == 2;
 
-        // Fetch orders from data-access-service for the current user
-        List<Map<String, Object>> orders = dataAccessClient.get()
-                .uri("/api/data/orders/user/" + userId)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .block();
+        // Fetch orders - all orders for admin, or just user's orders for regular users
+        List<Map<String, Object>> orders;
+        if (isAdmin) {
+            // Admin sees all orders
+            orders = dataAccessClient.get()
+                    .uri("/api/data/orders/all")
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                    .block();
+        } else {
+            // Regular user sees only their orders
+            orders = dataAccessClient.get()
+                    .uri("/api/data/orders/user/" + userId)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                    .block();
+        }
 
         model.addAttribute("orders", orders);
         model.addAttribute("userInfo", userInfo);

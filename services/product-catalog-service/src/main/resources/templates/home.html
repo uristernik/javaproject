@@ -1,77 +1,105 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>Welcome to Fresh Produce Market</title>
+    <title>Welcome to New Roots</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/modern-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #388E3C;
+            --secondary-color: #A0522D;
+            --light-color: #F5F5DC;
+            --light-color-alt: #E8F5E9;
+            --dark-color: #333;
+            --text-color: #555;
+            --border-color: #ddd;
+            --spacing-sm: 10px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+            --transition-fast: 0.2s ease-in-out;
+            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            --border-radius: 8px;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: var(--light-color-alt);
+            color: var(--text-color);
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: var(--spacing-lg);
         }
 
         .welcome-section {
             background-color: #fff;
-            border-radius: 8px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--box-shadow);
         }
 
         .welcome-header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: var(--spacing-lg);
         }
 
         .welcome-header h1 {
             margin: 0;
-            color: #2c3e50;
+            color: var(--primary-color);
+            font-size: 2.5rem;
         }
 
         .user-name {
-            color: #27ae60;
-            font-weight: bold;
+            color: var(--secondary-color);
+            font-weight: 600;
         }
 
         .farm-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
         }
 
         .farm-info {
             background-color: #fff;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-xl);
+            box-shadow: var(--box-shadow);
         }
 
         .farm-info h2 {
-            color: #2c3e50;
+            color: var(--primary-color);
             margin-top: 0;
+            font-size: 2rem;
         }
 
         .farm-gallery {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            gap: var(--spacing-md);
         }
 
         .farm-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
-            border-radius: 8px;
-            transition: transform 0.3s ease;
+            border-radius: var(--border-radius);
+            transition: transform var(--transition-fast);
         }
 
         .farm-image:hover {
@@ -79,63 +107,85 @@
         }
 
         .cta-section {
-            background-color: #27ae60;
+            background-color: var(--primary-color);
             color: white;
-            border-radius: 8px;
-            padding: 30px;
+            border-radius: var(--border-radius);
+            padding: var(--spacing-xl);
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: var(--spacing-xl);
         }
 
         .cta-section h2 {
             margin-top: 0;
+            font-size: 2.2rem;
         }
 
         .cta-buttons {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
         }
 
         .cta-button {
             display: inline-block;
-            padding: 12px 24px;
+            padding: var(--spacing-md) var(--spacing-xl);
             background-color: #fff;
-            color: #27ae60;
+            color: var(--primary-color);
             text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            transition: background-color var(--transition-fast);
+            font-size: 1.1rem;
         }
 
         .cta-button:hover {
-            background-color: #f0f0f0;
+            background-color: var(--light-color);
         }
 
         .features-section {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
         }
 
         .feature-card {
             background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            box-shadow: var(--box-shadow);
             text-align: center;
         }
 
         .feature-card h3 {
-            color: #2c3e50;
+            color: var(--primary-color);
+            font-size: 1.4rem;
         }
 
         .feature-icon {
             font-size: 48px;
-            color: #27ae60;
-            margin-bottom: 15px;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .alert {
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-danger {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #ef9a9a;
+        }
+
+        .alert i {
+            margin-right: var(--spacing-sm);
+            font-size: 1.1rem;
         }
 
         @media (max-width: 768px) {
@@ -153,67 +203,83 @@
         }
     </style>
 </head>
+
 <body>
-    <!-- Include the navigation bar -->
     <div th:replace="fragments :: navbar"></div>
 
     <div class="container">
-        <!-- Error message display -->
-        <div th:if="${errorMessage}" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #f5c6cb;">
-            <strong>Error:</strong> <span th:text="${errorMessage}">Error message</span>
+        <div th:if="${errorMessage}" class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}">Error message</span>
         </div>
 
         <div class="welcome-section">
             <div class="welcome-header">
-                <h1>Welcome, <span class="user-name" th:text="${userInfo.firstName + ' ' + userInfo.lastName}">User</span>!</h1>
+                <h1>Welcome to New Roots, <span class="user-name"
+                        th:text="${userInfo.firstName + ' ' + userInfo.lastName}">User</span>!</h1>
             </div>
-            <p>Thank you for choosing Fresh Produce Market. We're dedicated to bringing you the freshest, locally-sourced produce directly from our network of sustainable farms.</p>
+            <p>
+                New Roots is more than just a marketplace; it's a community dedicated to connecting you directly with local farmers. Founded to support those whose farms were impacted by the events of October 7th, our platform offers the freshest, seasonal produce while directly supporting the individuals who cultivate it.
+            </p>
+            <p>
+                Join us in strengthening our community and enjoying the taste of home-grown goodness. By choosing New Roots, you're not just buying food; you're investing in the resilience of local agriculture and helping to plant the seeds for a sustainable future.
+            </p>
         </div>
 
         <div class="farm-section">
             <div class="farm-info">
-                <h2>Our Farm Story</h2>
-                <p>Fresh Produce Market was founded in 2010 with a simple mission: connect local farmers with consumers who care about quality, sustainability, and supporting local agriculture.</p>
-                <p>We work with over 50 family-owned farms across the region, ensuring that you get access to seasonal produce harvested at peak freshness. Our farmers use sustainable farming practices that protect the environment and produce the most flavorful fruits and vegetables.</p>
-                <p>By shopping with us, you're not just getting the best produce - you're supporting a network of local farmers and helping to build a more sustainable food system.</p>
+                <h2>Our Story</h2>
+                <p>
+                    The idea for New Roots was born out of a desire to create a stronger bond between farmers and consumers. We believe that everyone deserves access to fresh, locally sourced produce, and that farmers deserve fair compensation for their hard work.
+                </p>
+                <p>
+                    Following the devastating events of October 7th, the need for this connection became even more urgent. Many farms faced unprecedented challenges, and New Roots emerged as a way to provide a lifeline, ensuring their produce reaches the tables of those who appreciate it.
+                </p>
+                <p>
+                    We're committed to building a sustainable food system that benefits everyone – from the soil to the consumer.
+                </p>
             </div>
 
             <div class="farm-gallery">
-                <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Farm field" class="farm-image">
-                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Fresh vegetables" class="farm-image">
-                <img src="https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Farmer harvesting" class="farm-image">
-                <img src="https://images.unsplash.com/photo-1470072638680-0824bac3da9f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Sunrise over farm" class="farm-image">
+                <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
+                    alt="Farm field" class="farm-image">
+                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
+                    alt="Fresh vegetables" class="farm-image">
+                <img src="https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
+                    alt="Farmer harvesting" class="farm-image">
+                <img src="https://t3.ftcdn.net/jpg/02/70/87/46/360_F_270874621_FtM3ZXcixJ9SAJ28lIaEwVsPB7f1kr7q.jpg"
+                    alt="Sunrise over farm" class="farm-image">
             </div>
         </div>
 
         <div class="cta-section">
-            <h2>Ready to explore our fresh produce?</h2>
-            <p>Browse our catalog of seasonal fruits and vegetables, all sourced from local farms and delivered to your doorstep.</p>
+            <h2>Ready to grow with us?</h2>
+            <p>Explore our catalog of seasonal fruits and vegetables, connect with local farmers, and discover the difference fresh, sustainable food can make.</p>
             <div class="cta-buttons">
                 <a href="/catalog" class="cta-button">Shop Now</a>
-                <a href="/farmers" class="cta-button">Meet Our Farmers</a>
+                <a href="/farmers" class="cta-button">Sell Your Produce</a>
             </div>
         </div>
 
         <div class="features-section">
             <div class="feature-card">
                 <div class="feature-icon">🌱</div>
-                <h3>Sustainable Farming</h3>
-                <p>All our produce comes from farms that use sustainable farming practices, protecting the environment for future generations.</p>
+                <h3>Sustainable Practices</h3>
+                <p>We partner with farms committed to sustainable practices that nourish the land and ensure a healthy future.</p>
             </div>
 
             <div class="feature-card">
-                <div class="feature-icon">🚚</div>
-                <h3>Farm to Table</h3>
-                <p>We deliver directly from farms to your table, ensuring maximum freshness and supporting local agriculture.</p>
+                <div class="feature-icon">🤝</div>
+                <h3>Direct Connection</h3>
+                <p>New Roots shortens the distance between you and your food, fostering a stronger relationship with the people who grow it.</p>
             </div>
 
             <div class="feature-card">
-                <div class="feature-icon">🍎</div>
-                <h3>Seasonal Variety</h3>
-                <p>Enjoy a wide variety of seasonal produce, harvested at peak ripeness for the best flavor and nutritional value.</p>
+                <div class="feature-icon">🧺</div>
+                <h3>Seasonal Abundance</h3>
+                <p>Enjoy the best of each season with a rotating selection of fresh, locally harvested produce.</p>
             </div>
         </div>
     </div>
 </body>
+
 </html>

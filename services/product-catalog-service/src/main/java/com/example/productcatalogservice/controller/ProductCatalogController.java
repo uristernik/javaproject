@@ -85,7 +85,25 @@ public class ProductCatalogController {
     }
 
     @GetMapping("/catalog")
-    public String showCatalog(Model model) {
+    public String showCatalog(
+            @CookieValue(name = "JSESSIONID", required = false) String sessionId,
+            Model model) {
+
+        // Get the current user info from the auth service
+        if (sessionId != null && !sessionId.isEmpty()) {
+            try {
+                Map<String, Object> userInfo = authClient.get()
+                        .uri("/auth/user")
+                        .cookie("JSESSIONID", sessionId)
+                        .retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                        .block();
+                model.addAttribute("userInfo", userInfo);
+            } catch (Exception e) {
+                // Continue without user info
+            }
+        }
+
         List<Map<String, Object>> products = dataAccessClient.get()
                 .uri("/api/data/tables/inventory")
                 .retrieve()
@@ -132,7 +150,25 @@ public class ProductCatalogController {
     }
 
     @GetMapping("/checkout")
-    public String showCheckout() {
+    public String showCheckout(
+            @CookieValue(name = "JSESSIONID", required = false) String sessionId,
+            Model model) {
+
+        // Get the current user info from the auth service
+        if (sessionId != null && !sessionId.isEmpty()) {
+            try {
+                Map<String, Object> userInfo = authClient.get()
+                        .uri("/auth/user")
+                        .cookie("JSESSIONID", sessionId)
+                        .retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                        .block();
+                model.addAttribute("userInfo", userInfo);
+            } catch (Exception e) {
+                // Continue without user info
+            }
+        }
+
         return "checkout";
     }
 }

@@ -1,13 +1,39 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>Checkout</title>
+    <title>Checkout - New Roots</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/modern-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #388E3C;
+            --secondary-color: #A0522D;
+            --light-color: #F5F5DC;
+            --light-color-alt: #E8F5E9;
+            --dark-color: #333;
+            --text-color: #555;
+            --border-color: #ddd;
+            --spacing-sm: 10px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+            --transition-fast: 0.2s ease-in-out;
+            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            --border-radius: 8px;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: var(--light-color-alt);
         }
 
         .container {
@@ -15,97 +41,189 @@
             margin: 0 auto;
             display: grid;
             grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            gap: var(--spacing-lg);
+            padding: var(--spacing-lg);
         }
 
-        .checkout-form, .order-summary {
+        .checkout-form,
+        .order-summary {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
 
-        h1, h2 {
-            color: #2c3e50;
+        h1,
+        h2 {
+            color: var(--primary-color);
             margin-top: 0;
         }
 
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+        }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: var(--spacing-lg);
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            color: #2c3e50;
+            margin-bottom: var(--spacing-sm);
+            color: var(--dark-color);
+            font-weight: 500;
         }
 
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        input,
+        select {
+            width: calc(100% - 20px);
+            padding: var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
             box-sizing: border-box;
+            font-size: 1rem;
+            color: var(--text-color);
+            transition: border-color var(--transition-fast);
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
         }
 
         .order-items {
-            margin: 20px 0;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
+            margin: var(--spacing-lg) 0;
+            border-top: 2px solid var(--border-color);
+            padding-top: var(--spacing-lg);
         }
 
         .order-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .total {
-            font-size: 1.2em;
-            font-weight: bold;
+            font-size: 1.2rem;
+            font-weight: 600;
             text-align: right;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #eee;
+            margin-top: var(--spacing-lg);
+            padding-top: var(--spacing-lg);
+            border-top: 2px solid var(--border-color);
+            color: var(--dark-color);
+            position: relative;
+            /* For absolute positioning of the cash payment text */
+        }
+
+        .cash-payment-info {
+            display: block; /* Change to block */
+            text-align: right; /* Align text to the right */
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            font-weight: 500;
+            margin-top: var(--spacing-sm); /* Add top margin */
         }
 
         .submit-button {
-            background-color: #27ae60;
+            background-color: var(--secondary-color);
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
+            padding: var(--spacing-md) var(--spacing-xl);
+            border-radius: var(--border-radius);
             cursor: pointer;
             width: 100%;
-            font-size: 1.1em;
-            margin-top: 20px;
+            font-size: 1.1rem;
+            margin-top: var(--spacing-lg);
+            transition: background-color var(--transition-fast);
         }
 
         .submit-button:hover {
-            background-color: #219a52;
+            background-color: #8B4513;
         }
 
         .error-message {
             color: #e74c3c;
             background-color: #fde8e7;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
             display: none;
+            border: 1px solid #e74c3c;
         }
 
         .success-message {
-            color: #27ae60;
+            color: var(--primary-color);
             background-color: #e8f5e9;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
             display: none;
+            border: 1px solid var(--primary-color);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            /* Changed margin */
+            padding: var(--spacing-lg);
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: var(--border-radius);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="checkout-form">
@@ -116,22 +234,22 @@
             <form id="checkoutForm">
                 <div class="form-group">
                     <label for="name">Full Name</label>
-                    <input type="text" id="name" required>
+                    <input type="text" id="name" placeholder="Enter your full name" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" required>
+                    <input type="email" id="email" placeholder="Enter your email" required>
                 </div>
 
                 <div class="form-group">
                     <label for="phone">Phone</label>
-                    <input type="tel" id="phone" required>
+                    <input type="tel" id="phone" placeholder="Enter your phone number" required>
                 </div>
 
                 <div class="form-group">
                     <label for="address">Delivery Address</label>
-                    <input type="text" id="address" required>
+                    <input type="text" id="address" placeholder="Enter your delivery address" required>
                 </div>
 
                 <button type="submit" class="submit-button">Place Order</button>
@@ -141,11 +259,19 @@
         <div class="order-summary">
             <h2>Order Summary</h2>
             <div id="orderItems" class="order-items">
-                <!-- Items will be populated by JavaScript -->
-            </div>
+                </div>
             <div class="total">
                 Total: <span id="orderTotal">$0.00</span>
+                <div class="cash-payment-info">Cash payment at delivery</div>
             </div>
+        </div>
+    </div>
+
+    <div id="thankYouModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeThankYouPopup()">&times;</span>
+            <h2>Thank You!</h2>
+            <p>Your order has been placed successfully. We appreciate your business!</p>
         </div>
     </div>
 
@@ -259,6 +385,10 @@
                     setTimeout(() => {
                         window.location.href = '/orders';
                     }, 2000);
+
+                    // Show thank you popup
+                    showThankYouPopup();
+
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -270,6 +400,23 @@
 
         // Initialize order summary
         displayOrderSummary();
+
+        function showThankYouPopup() {
+            document.getElementById('thankYouModal').style.display = "block";
+        }
+
+        function closeThankYouPopup() {
+            document.getElementById('thankYouModal').style.display = "none";
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('thankYouModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
     </script>
 </body>
+
 </html>
