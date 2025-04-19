@@ -22,6 +22,11 @@ public class OrderController {
         this.authClient = WebClient.create("http://nginx:80");
     }
 
+    @GetMapping("/")
+    public String redirectToOrders() {
+        return "redirect:/orders";
+    }
+
     @GetMapping("/orders")
     public String showOrders(
             @CookieValue(name = "JSESSIONID", required = false) String sessionId,
