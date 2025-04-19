@@ -77,12 +77,15 @@ public class UserManagementController {
 
         // Check if the user is trying to delete itself
         if (userInfo != null && userInfo.containsKey("id")) {
-            Long currentUserId = ((Number) userInfo.get("id")).longValue();
-            if (currentUserId.equals(userId)) {
-                model.addAttribute("errorMessage", "You cannot delete your own account");
-                List<User> users = userManagementService.getAllUsers();
-                model.addAttribute("users", users);
-                return "users";
+            Number idNumber = (Number) userInfo.get("id");
+            if (idNumber != null) {
+                Long currentUserId = idNumber.longValue();
+                if (currentUserId.equals(userId)) {
+                    model.addAttribute("errorMessage", "You cannot delete your own account");
+                    List<User> users = userManagementService.getAllUsers();
+                    model.addAttribute("users", users);
+                    return "users";
+                }
             }
         }
 

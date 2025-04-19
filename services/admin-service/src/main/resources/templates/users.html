@@ -217,7 +217,7 @@
 </head>
 
 <body>
-    <div th:replace="fragments :: navbar"></div>
+    <div th:replace="~{fragments :: navbar}"></div>
 
     <div class="container">
         <div class="header">
@@ -243,11 +243,11 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="user : ${users}" th:class="${userInfo != null && userInfo.id == user.id ? 'current-user-row' : ''}">
+                <tr th:each="user : ${users}" th:class="${userInfo != null && userInfo.get('id') != null && user.id == userInfo.get('id') ? 'current-user-row' : ''}">
                     <td th:text="${user.id}"></td>
                     <td>
                         <span th:text="${user.firstName + ' ' + user.lastName}"></span>
-                        <span th:if="${userInfo != null && userInfo.id == user.id}" class="current-user-badge">You</span>
+                        <span th:if="${userInfo != null && userInfo.get('id') != null && user.id == userInfo.get('id')}" class="current-user-badge">You</span>
                     </td>
                     <td th:text="${user.email}"></td>
                     <td th:text="${user.phone}"></td>
@@ -262,10 +262,9 @@
                         <form th:action="@{/admin/users/{userId}/delete(userId=${user.id})}" method="post"
                             style="display: inline;">
                             <button type="submit" class="btn btn-danger"
-                                th:disabled="${userInfo != null && userInfo.id == user.id}"
-                                th:classappend="${userInfo != null && userInfo.id == user.id ? 'btn-disabled' : ''}"
-                                th:title="${userInfo != null && userInfo.id == user.id ? 'You cannot delete your own account' : 'Delete this user'}"
-                                th:onclick="${userInfo != null && userInfo.id == user.id ? 'return false' : 'return confirm(\'Are you sure you want to delete this user?\')'}">
+                                th:disabled="${userInfo != null && userInfo.get('id') != null && user.id == userInfo.get('id')}"
+                                th:classappend="${userInfo != null && userInfo.get('id') != null && user.id == userInfo.get('id') ? 'btn-disabled' : 'delete-btn'}"
+                                th:title="${userInfo != null && userInfo.get('id') != null && user.id == userInfo.get('id') ? 'You cannot delete your own account' : 'Delete this user'}">
                                 <i class="fas fa-trash-alt"></i> Delete
                             </button>
                         </form>
@@ -274,6 +273,21 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click event listeners to all delete buttons
+            document.querySelectorAll('.delete-btn').forEach(function(button) {
+                button.addEventListener('click', function(event) {
+                    // Show confirmation dialog
+                    if (!confirm('Are you sure you want to delete this user?')) {
+                        // If user clicks Cancel, prevent form submission
+                        event.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
