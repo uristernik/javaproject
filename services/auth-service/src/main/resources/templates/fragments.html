@@ -109,6 +109,18 @@
         .fa-leaf {
             color: var(--primary-color);
         }
+
+        .disabled-link {
+            color: #aaa !important;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .disabled-link:hover {
+            background-color: transparent !important;
+            color: #aaa !important;
+        }
     </style>
 </head>
 
@@ -136,10 +148,12 @@
                 <a href="/orders">
                     <i class="fas fa-clipboard-list"></i> Orders
                 </a>
-                <a href="/admin/users">
+                <a th:href="${userInfo != null && userInfo.type == 2 ? '/admin/users' : '#'}"
+                   th:class="${userInfo != null && userInfo.type == 2 ? '' : 'disabled-link'}">
                     <i class="fas fa-users-cog"></i> Users
                 </a>
-                <a href="/admin/prices">
+                <a th:href="${userInfo != null && userInfo.type == 2 ? '/admin/prices' : '#'}"
+                   th:class="${userInfo != null && userInfo.type == 2 ? '' : 'disabled-link'}">
                     <i class="fas fa-tags"></i> Prices
                 </a>
             </div>
