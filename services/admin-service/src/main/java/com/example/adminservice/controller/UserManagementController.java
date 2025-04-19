@@ -60,9 +60,10 @@ public class UserManagementController {
             @PathVariable Long userId,
             Model model) {
         // Get the current user info from the auth service
+        Map<String, Object> userInfo = null;
         if (sessionId != null && !sessionId.isEmpty()) {
             try {
-                Map<String, Object> userInfo = authClient.get()
+                userInfo = authClient.get()
                         .uri("/auth/user")
                         .cookie("JSESSIONID", sessionId)
                         .retrieve()
@@ -71,6 +72,17 @@ public class UserManagementController {
                 model.addAttribute("userInfo", userInfo);
             } catch (Exception e) {
                 // Continue without user info
+            }
+        }
+
+        // Check if the user is trying to delete itself
+        if (userInfo != null && userInfo.containsKey("id")) {
+            Long currentUserId = ((Number) userInfo.get("id")).longValue();
+            if (currentUserId.equals(userId)) {
+                model.addAttribute("errorMessage", "You cannot delete your own account");
+                List<User> users = userManagementService.getAllUsers();
+                model.addAttribute("users", users);
+                return "users";
             }
         }
 
