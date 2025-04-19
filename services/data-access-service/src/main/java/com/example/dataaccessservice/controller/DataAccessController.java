@@ -73,4 +73,28 @@ public class DataAccessController {
         String newPassword = (String) passwordData.get("newPassword");
         return ResponseEntity.ok(databaseService.resetUserPassword(userId, newPassword));
     }
+
+    @GetMapping("/users/email/{email}")
+    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
+        Map<String, Object> user = databaseService.getUserByEmail(email);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/users/exists/{email}")
+    public ResponseEntity<Boolean> checkEmailExists(@PathVariable String email) {
+        return ResponseEntity.ok(databaseService.existsByEmail(email));
+    }
+
+    @PostMapping("/users/register")
+    public ResponseEntity<?> registerUser(@RequestBody Map<String, Object> userData) {
+        try {
+            Map<String, Object> newUser = databaseService.registerNewUser(userData);
+            return ResponseEntity.ok(newUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

@@ -58,12 +58,7 @@ services:
     expose:
       - "8086"
     depends_on:
-      database:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/mydb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
+      - data-access-service
 
   database:
     image: postgres:alpine

@@ -244,6 +244,100 @@ public class DatabaseService {
         return jdbcTemplate.query(sql, new UserRowMapper());
     }
 
+    public Map<String, Object> getUserByEmail(String email) {
+        System.out.println("DatabaseService: Getting user by email: " + email);
+        String sql = "SELECT userid, firstname, lastname, email, phone, type, hashedpassword FROM users WHERE email = ?";
+
+        try {
+            List<Map<String, Object>> users = jdbcTemplate.query(sql, (rs, rowNum) -> {
+                Map<String, Object> user = new HashMap<>();
+                user.put("id", rs.getLong("userid"));
+                user.put("firstName", rs.getString("firstname"));
+                user.put("lastName", rs.getString("lastname"));
+                user.put("email", rs.getString("email"));
+                user.put("phone", rs.getString("phone"));
+                user.put("type", rs.getInt("type"));
+                // Store the hashed password with both keys for compatibility
+                String hashedPassword = rs.getString("hashedpassword");
+                user.put("password", hashedPassword);
+                user.put("hashedPassword", hashedPassword);
+                return user;
+            }, email);
+
+            if (users.isEmpty()) {
+                System.out.println("DatabaseService: No user found with email: " + email);
+                return null;
+            }
+
+            Map<String, Object> user = users.get(0);
+            System.out.println("DatabaseService: Found user: " + user);
+            System.out.println("DatabaseService: Password in DB: " + user.get("password"));
+            return user;
+        } catch (Exception e) {
+            System.err.println("DatabaseService: Error getting user by email: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean existsByEmail(String email) {
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email);
+        return count != null && count > 0;
+    }
+
+    @Transactional
+    public Map<String, Object> registerNewUser(Map<String, Object> userData) {
+        System.out.println("DatabaseService: Registering new user with data: " + userData);
+
+        // Check if user already exists
+        String email = (String) userData.get("email");
+        if (existsByEmail(email)) {
+            System.out.println("DatabaseService: Email already in use: " + email);
+            throw new RuntimeException("Email already in use");
+        }
+
+        // Hash the password
+        String password = (String) userData.get("password");
+        System.out.println("DatabaseService: Hashing password for user: " + email);
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String hashedPassword = passwordEncoder.encode(password);
+
+        // Set default user type (1 for regular user)
+        int userType = 1;
+
+        try {
+            // Insert the new user
+            String sql = "INSERT INTO users (firstname, lastname, email, phone, hashedpassword, type) VALUES (?, ?, ?, ?, ?, ?) RETURNING userid";
+            System.out.println("DatabaseService: Executing SQL to insert new user");
+            Long userId = jdbcTemplate.queryForObject(sql, Long.class,
+                    userData.get("firstName"),
+                    userData.get("lastName"),
+                    email,
+                    userData.get("phone"),
+                    hashedPassword,
+                    userType);
+
+            System.out.println("DatabaseService: User inserted with ID: " + userId);
+
+            // Return the created user
+            Map<String, Object> newUser = new HashMap<>();
+            newUser.put("id", userId);
+            newUser.put("firstName", userData.get("firstName"));
+            newUser.put("lastName", userData.get("lastName"));
+            newUser.put("email", email);
+            newUser.put("phone", userData.get("phone"));
+            newUser.put("type", userType);
+
+            System.out.println("DatabaseService: Returning new user data: " + newUser);
+            return newUser;
+        } catch (Exception e) {
+            System.err.println("DatabaseService: Error registering new user: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to register user: " + e.getMessage());
+        }
+    }
+
     @Transactional
     public boolean deleteUser(Long userId) {
         // First check if user exists
