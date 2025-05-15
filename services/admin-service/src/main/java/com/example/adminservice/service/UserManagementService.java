@@ -8,10 +8,12 @@ package com.example.adminservice.service;
  * - Processing user deletions
  * - Managing password resets
  * - Converting between data formats
+ * - Retrieving user authentication information
  *
  * Architecture Notes:
  * - This service encapsulates business logic separate from the controller
  * - It communicates with the Data Access Service for database operations
+ * - It communicates with the Auth Service for user information
  * - It handles data transformation between API and domain models
  *
  * Key Responsibilities:
@@ -19,10 +21,13 @@ package com.example.adminservice.service;
  * - Processing user deletions
  * - Handling password resets
  * - Converting data between formats
+ * - Retrieving authenticated user information
+ * - Validating user operations (e.g., preventing self-deletion)
  *
  * In our microservices architecture:
  * - This service focuses on user management business logic
  * - The Data Access Service handles the actual database operations
+ * - The Auth Service handles user authentication
  * - The controller handles HTTP concerns and view rendering
  * - Only administrators can access this functionality
  */
@@ -31,7 +36,6 @@ import com.example.adminservice.model.User;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
@@ -54,17 +58,30 @@ public class UserManagementService {
      * - Delete users
      * - Reset user passwords
      */
-    private final WebClient webClient;
+    private final WebClient dataAccessClient;
 
     /**
-     * Constructor that initializes the WebClient instance.
+     * WebClient for communicating with the Auth Service (via Nginx).
      *
-     * The WebClient is configured to communicate with:
+     * This client is used to:
+     * - Retrieve current admin user information
+     * - Verify authentication status
+     * - Get admin user details for the UI
+     */
+    private final WebClient authClient;
+
+    /**
+     * Constructor that initializes the WebClient instances.
+     *
+     * The WebClients are configured to communicate with:
      * - Data Access Service: For database operations
+     * - Auth Service (via Nginx): For user authentication
      */
     public UserManagementService() {
         // Create WebClient for Data Access Service
-        this.webClient = WebClient.create("http://data-access-service:8085");
+        this.dataAccessClient = WebClient.create("http://data-access-service:8085");
+        // Create WebClient for Auth Service (via Nginx)
+        this.authClient = WebClient.create("http://nginx:80");
     }
 
     /**
@@ -79,7 +96,7 @@ public class UserManagementService {
      */
     public List<User> getAllUsers() {
         // Retrieve user data from Data Access Service
-        List<Map<String, Object>> userMaps = webClient.get()
+        List<Map<String, Object>> userMaps = dataAccessClient.get()
                 .uri("/api/data/users")
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
@@ -94,6 +111,62 @@ public class UserManagementService {
         return userMaps.stream()
                 .map(this::convertToUser)
                 .toList();
+    }
+
+    /**
+     * Retrieves current user information from the Auth Service.
+     *
+     * This method:
+     * - Makes a request to the Auth Service with the session ID
+     * - Retrieves user details including ID, name, email, and type
+     * - Returns a map of user information for UI personalization
+     *
+     * @param sessionId The JSESSIONID cookie for authentication
+     * @return Map containing user information, or null if authentication fails
+     */
+    public Map<String, Object> getCurrentUserInfo(String sessionId) {
+        if (sessionId == null || sessionId.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Request user information from Auth Service
+            return authClient.get()
+                    .uri("/auth/user")
+                    .cookie("JSESSIONID", sessionId)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+        } catch (Exception e) {
+            // Return null if authentication fails
+            return null;
+        }
+    }
+
+    /**
+     * Checks if the current user is attempting to delete their own account.
+     *
+     * This method:
+     * - Extracts the current user's ID from the user info map
+     * - Compares it with the target user ID for deletion
+     * - Returns true if they match (self-deletion attempt)
+     *
+     * @param userInfo The current user's information map
+     * @param targetUserId The ID of the user to be deleted
+     * @return true if it's a self-deletion attempt, false otherwise
+     */
+    public boolean isAttemptingToDeleteSelf(Map<String, Object> userInfo, Long targetUserId) {
+        if (userInfo == null || !userInfo.containsKey("id") || targetUserId == null) {
+            return false;
+        }
+
+        Number idNumber = (Number) userInfo.get("id");
+        if (idNumber == null) {
+            return false;
+        }
+
+        Long currentUserId = idNumber.longValue();
+        return currentUserId.equals(targetUserId);
     }
 
     /**
@@ -150,7 +223,7 @@ public class UserManagementService {
      */
     public boolean deleteUser(Long userId) {
         // Send delete request to Data Access Service
-        return webClient.delete()
+        return dataAccessClient.delete()
                 .uri("/api/data/users/{userId}", userId)
                 .retrieve()
                 .bodyToMono(Boolean.class)
@@ -180,7 +253,7 @@ public class UserManagementService {
         passwordData.put("newPassword", newPassword);
 
         // Send password reset request to Data Access Service
-        return webClient.post()
+        return dataAccessClient.post()
                 .uri("/api/data/users/reset-password")
                 .bodyValue(passwordData)
                 .retrieve()

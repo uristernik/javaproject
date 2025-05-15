@@ -128,7 +128,6 @@ New Roots is built using a microservices architecture with the following compone
   - Spring Boot 3.1.0
   - Spring Security
   - Spring Web
-  - Spring Data JPA
   - Thymeleaf (for server-side template rendering)
 
 - **Database**:

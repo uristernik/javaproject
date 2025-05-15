@@ -7,20 +7,24 @@ package com.example.adminservice.service;
  * - Retrieving inventory data from the Data Access Service
  * - Processing price updates from administrators
  * - Managing product pricing
+ * - Retrieving user authentication information
  *
  * Architecture Notes:
  * - This service encapsulates business logic separate from the controller
  * - It communicates with the Data Access Service for database operations
+ * - It communicates with the Auth Service for user information
  * - It handles data transformation between API and domain models
  *
  * Key Responsibilities:
  * - Retrieving inventory information for price management
  * - Processing price updates
  * - Validating price data
+ * - Retrieving authenticated user information
  *
  * In our microservices architecture:
  * - This service focuses on price management business logic
  * - The Data Access Service handles the actual database operations
+ * - The Auth Service handles user authentication
  * - The controller handles HTTP concerns and view rendering
  * - Only administrators can access this functionality
  */
@@ -47,17 +51,30 @@ public class PriceManagementService {
      * - Retrieve inventory data from the database
      * - Update product prices
      */
-    private final WebClient webClient;
+    private final WebClient dataAccessClient;
 
     /**
-     * Constructor that initializes the WebClient instance.
+     * WebClient for communicating with the Auth Service (via Nginx).
      *
-     * The WebClient is configured to communicate with:
+     * This client is used to:
+     * - Retrieve current admin user information
+     * - Verify authentication status
+     * - Get admin user details for the UI
+     */
+    private final WebClient authClient;
+
+    /**
+     * Constructor that initializes the WebClient instances.
+     *
+     * The WebClients are configured to communicate with:
      * - Data Access Service: For database operations
+     * - Auth Service (via Nginx): For user authentication
      */
     public PriceManagementService() {
         // Create WebClient for Data Access Service
-        this.webClient = WebClient.create("http://data-access-service:8085");
+        this.dataAccessClient = WebClient.create("http://data-access-service:8085");
+        // Create WebClient for Auth Service (via Nginx)
+        this.authClient = WebClient.create("http://nginx:80");
     }
 
     /**
@@ -72,7 +89,7 @@ public class PriceManagementService {
      */
     public List<InventoryItem> getInventoryItems() {
         // Retrieve inventory data from Data Access Service
-        return webClient.get()
+        return dataAccessClient.get()
                 .uri("/api/data/tables/inventory")
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
@@ -81,6 +98,36 @@ public class PriceManagementService {
                 .stream()
                 .map(this::mapToInventoryItem)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves current user information from the Auth Service.
+     *
+     * This method:
+     * - Makes a request to the Auth Service with the session ID
+     * - Retrieves user details including ID, name, email, and type
+     * - Returns a map of user information for UI personalization
+     *
+     * @param sessionId The JSESSIONID cookie for authentication
+     * @return Map containing user information, or null if authentication fails
+     */
+    public Map<String, Object> getCurrentUserInfo(String sessionId) {
+        if (sessionId == null || sessionId.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Request user information from Auth Service
+            return authClient.get()
+                    .uri("/auth/user")
+                    .cookie("JSESSIONID", sessionId)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+        } catch (Exception e) {
+            // Return null if authentication fails
+            return null;
+        }
     }
 
     /**
@@ -148,7 +195,7 @@ public class PriceManagementService {
         // Update each product's price
         for (Map.Entry<Long, Integer> entry : validPrices.entrySet()) {
             // Update price through data-access-service
-            webClient.post()
+            dataAccessClient.post()
                     .uri("/api/data/tables/inventory/update")
                     .bodyValue(Map.of(
                         "productId", entry.getKey(),
