@@ -103,8 +103,6 @@ public class SecurityConfig {
                 authorize
                     // Public resources that don't require authentication
                     .requestMatchers("/register", "/register/**", "/css/**", "/js/**").permitAll()
-                    // Protected resources that require authentication
-                    .requestMatchers("/inventory", "/inventory/**").authenticated()
                     // Default policy for all other requests
                     .anyRequest().permitAll()
             )

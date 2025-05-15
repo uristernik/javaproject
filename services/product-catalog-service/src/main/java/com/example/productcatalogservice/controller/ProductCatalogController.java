@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 
 import com.example.productcatalogservice.service.ProductService;
 
@@ -181,7 +180,7 @@ public class ProductCatalogController {
                 model.addAttribute("userInfo", userInfo);
             } catch (Exception e) {
                 // Continue without user info if authentication fails
-                // This allows the catalog to be viewed without requiring login
+                // This should not happen in normal operation since Nginx enforces authentication
             }
         }
 

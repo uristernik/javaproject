@@ -10,14 +10,15 @@ package com.example.adminservice.controller;
  *
  * Architecture Notes:
  * - The Admin Service provides administrative interfaces
- * - It communicates with the Data Access Service for inventory data operations
- * - It communicates with the Auth Service for current user information
+ * - It communicates with the Data Access Service for inventory data operations via PriceManagementService
+ * - It communicates with the Auth Service for current user information via PriceManagementService
  * - It requires admin privileges (user type=2) to access
  *
  * Key Responsibilities:
  * - Providing price management interfaces for administrators
- * - Enforcing admin-only access to price management
- * - Handling price update operations via the Data Access Service
+ * - Handling HTTP requests and responses
+ * - Delegating business logic to the service layer
+ * - Rendering appropriate views
  *
  * In our microservices architecture:
  * - This service is protected by Nginx's auth_request directive
@@ -28,11 +29,9 @@ package com.example.adminservice.controller;
 
 import com.example.adminservice.service.PriceManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
 
@@ -50,35 +49,16 @@ public class PriceManagementController {
      *
      * This service:
      * - Communicates with the Data Access Service
+     * - Communicates with the Auth Service
      * - Retrieves inventory items with prices
      * - Updates product prices
+     * - Retrieves user information
      * - Implements business rules for price management
      *
      * @Autowired - Injects the PriceManagementService bean into this controller
      */
     @Autowired
     private PriceManagementService priceManagementService;
-
-    /**
-     * WebClient for communicating with the Auth Service (via Nginx).
-     *
-     * This client is used to:
-     * - Retrieve current admin user information
-     * - Verify authentication status
-     * - Get admin user details for the UI
-     */
-    private final WebClient authClient;
-
-    /**
-     * Constructor that initializes the WebClient instance.
-     *
-     * The WebClient is configured to communicate with:
-     * - Nginx: As a gateway to the Auth Service
-     */
-    public PriceManagementController() {
-        // Create WebClient for Auth Service (via Nginx)
-        this.authClient = WebClient.create("http://nginx:80");
-    }
 
     /**
      * Displays the price management page with current product prices.
@@ -107,23 +87,11 @@ public class PriceManagementController {
     public String managePrices(
             @CookieValue(name = "JSESSIONID", required = false) String sessionId,
             Model model) {
-        // Get the current admin user info from the auth service for the UI
-        if (sessionId != null && !sessionId.isEmpty()) {
-            try {
-                // Request user information from Auth Service
-                Map<String, Object> userInfo = authClient.get()
-                        .uri("/auth/user")
-                        .cookie("JSESSIONID", sessionId)
-                        .retrieve()
-                        .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                        .block();
-
-                // Add admin user info to model for UI personalization
-                model.addAttribute("userInfo", userInfo);
-            } catch (Exception e) {
-                // Continue without user info if authentication fails
-                // This should not happen in normal operation since Nginx enforces authentication
-            }
+        // Get the current admin user info from the service
+        Map<String, Object> userInfo = priceManagementService.getCurrentUserInfo(sessionId);
+        if (userInfo != null) {
+            // Add admin user info to model for UI personalization
+            model.addAttribute("userInfo", userInfo);
         }
 
         // Retrieve all inventory items with prices
@@ -163,23 +131,11 @@ public class PriceManagementController {
             @CookieValue(name = "JSESSIONID", required = false) String sessionId,
             @RequestParam Map<String, String> prices,
             Model model) {
-        // Get the current admin user info from the auth service for the UI
-        if (sessionId != null && !sessionId.isEmpty()) {
-            try {
-                // Request user information from Auth Service
-                Map<String, Object> userInfo = authClient.get()
-                        .uri("/auth/user")
-                        .cookie("JSESSIONID", sessionId)
-                        .retrieve()
-                        .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                        .block();
-
-                // Add admin user info to model for UI personalization
-                model.addAttribute("userInfo", userInfo);
-            } catch (Exception e) {
-                // Continue without user info if authentication fails
-                // This should not happen in normal operation since Nginx enforces authentication
-            }
+        // Get the current admin user info from the service
+        Map<String, Object> userInfo = priceManagementService.getCurrentUserInfo(sessionId);
+        if (userInfo != null) {
+            // Add admin user info to model for UI personalization
+            model.addAttribute("userInfo", userInfo);
         }
 
         try {
